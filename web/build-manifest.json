@@ -4,7 +4,7 @@
   "renderer": "gl_compatibility",
   "threads": false,
   "contentSourceSha256": "af83cc8e122dbb7c83369cdb2e0bc64bc1d2e34a8df854bd17815531e3b0396f",
-  "totalBytes": 39889535,
+  "totalBytes": 39889532,
   "files": {
     "index.audio.position.worklet.js": {
       "bytes": 2973,
@@ -15,8 +15,8 @@
       "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
     },
     "index.html": {
-      "bytes": 6012,
-      "sha256": "908cb72bb060baa8a222b07376f02e8d7b56b30866ef7deb7cb9fc3ac8968cad"
+      "bytes": 6009,
+      "sha256": "d981028dfdc0258e16348cd9f3098edef0ddb0cd5453f2005f8e969fe170ef4d"
     },
     "index.js": {
       "bytes": 279815,

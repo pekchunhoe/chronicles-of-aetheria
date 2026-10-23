@@ -36,7 +36,7 @@ Browser touch devices reuse the existing stick/buttons, automatically enabled us
 
 | Generated file | Bytes |
 | --- | ---: |
-| `web/index.html` | 6,012 |
+| `web/index.html` | 6,009 |
 | `web/index.js` | 279,815 |
 | `web/index.wasm` | 39,514,754 |
 | `web/index.pck` | 57,240 |
@@ -44,7 +44,7 @@ Browser touch devices reuse the existing stick/buttons, automatically enabled us
 | `web/index.audio.position.worklet.js` | 2,973 |
 | `web/index.png` | 21,443 |
 
-Total generated game assets: **39,889,535 bytes / 38.04 MiB**. `build-manifest.json` records exact hashes, sizes, engine/renderer/thread settings and a normalized hash of game source. `web/.gdignore` keeps generated artifacts out of the Godot import pipeline. The largest file is below GitHub's regular 100 MiB per-file limit; the validator uses a conservative 90 MiB per-file / 180 MiB total project guardrail. All generated support filenames are preserved.
+Total generated game assets: **39,889,532 bytes / 38.04 MiB**. `build-manifest.json` records exact hashes, sizes, engine/renderer/thread settings and a normalized hash of game source. `web/.gdignore` keeps generated artifacts out of the Godot import pipeline. The largest file is below GitHub's regular 100 MiB per-file limit; the validator uses a conservative 90 MiB per-file / 180 MiB total project guardrail. All generated support filenames are preserved. The export script trims generated HTML whitespace before hashing; the generated JavaScript/WASM/PCK remain exporter output.
 
 The validator checks WebAssembly validity, Godot PCK magic, HTML initialization, shell dependencies, configured sizes and source/output hashes. No Godot rebuild happens on Vercel: complete prebuilt artifacts are versioned, and source changes without re-exporting cause the integrity check to fail rather than publish a stale game.
 
@@ -61,7 +61,7 @@ The validator checks WebAssembly validity, Godot PCK magic, HTML initialization,
 
 The existing project was linked locally by its verified project/team IDs. `vercel build --prod --yes --scope pek-explains-physics` completed successfully and produced `.vercel/output/static` with the same verified files. This was a **local build, not a deployment**. Generated route configuration applies asset headers and a missing-route 404; it does not redirect asset requests to the game HTML.
 
-Dashboard settings require no change beyond honoring the committed configuration: Root Directory remains blank/repository root, Git link stays the existing repo and production branch stays `main`. Do not create another project or reassign the domain. CLI-generated environment files were ignored and removed after the local build; no credentials or project-local Vercel metadata are part of the commit.
+Dashboard settings require no change beyond honoring the committed configuration: Root Directory remains blank/repository root, Git link stays the existing repo and production branch stays `main`. Do not create another project or reassign the domain. CLI-generated environment files remain excluded; no credentials or project-local Vercel metadata are part of the commits. Automatic approval review rejected optional environment-file cleanup because those files may contain credentials; no further deletion was attempted.
 
 ## Actual validation results
 
@@ -104,7 +104,7 @@ No unrelated preexisting working-tree edits were present. Windows/Android preset
 
 Base commit: **`220c6dbeb1d1e922741ed2b863ad148bead86604`**, `main`, matching `origin/main` before work. Remote: `https://github.com/pekchunhoe/chronicles-of-aetheria.git`.
 
-The focused local commit containing this report uses the requested message **`Add Godot Web export and fix Vercel deployment`**. It is **not pushed**: a safe push/production deployment is gated on the required browser tests. No force-push/history rewrite, deployment deletion or domain change is authorized or needed. Use `git log -1 --format="%H %s"` to identify this commit.
+The main focused local commit is **`9005b33bb4b38631355f152e2c066b2642c1087a`**, **`Add Godot Web export and fix Vercel deployment`**. A small follow-up normalizes generated HTML whitespace and refreshes this evidence without rewriting history. Both are **not pushed**: a safe push/production deployment is gated on the required browser tests. No force-push/history rewrite, deployment deletion or domain change is authorized or needed. Use `git log -2 --format="%H %s"` to identify both local commits.
 
 **Production URL:** https://chronicles-of-aetheria-five.vercel.app/ — latest verified production state is the original **HTTP 404**, not a successful game deployment. A local successful Vercel build does not change that status.
 
@@ -112,7 +112,7 @@ The focused local commit containing this report uses the requested message **`Ad
 
 1. Keep the local HTTP server at `http://127.0.0.1:8060/` running (`python tools/serve_web.py`). Connect a browser, or perform the required browser checks manually: loading, canvas rendering/resizing, A/D/Space, platform/gap, pause/resume, checkpoint/fall recovery, bench result, save/reload and console/network errors. Test touch landscape/fullscreen and browser visibility/storage separately.
 2. Fix any browser-specific failures, then regenerate with `tools/export_web.ps1`. Re-run HTTP/hash checks and any affected native regression checks.
-3. Review the focused commit and `web/` completeness; ensure `.env*`, `.vercel/`, `.godot/`, `.tools/` and signing material are excluded. Push the verified focused commit to existing `origin/main` only after the required checks pass.
+3. Review the focused commits and `web/` completeness; ensure `.env*`, `.vercel/`, `.godot/`, `.tools/` and signing material are excluded. Run `git push origin main` only after the required browser checks pass. This uses the existing verified remote and branch.
 4. Let the existing GitHub→Vercel integration deploy. Inspect the existing project's deployment and match its Git SHA. Avoid a duplicate CLI production deployment.
 5. Run `node tools/verify_web_export.mjs --url https://chronicles-of-aetheria-five.vercel.app/`, confirm HTTP 200 and exact game assets, then open the production game and repeat keyboard/touch/console checks. Record the URL, SHA, deployment ID and actual browser evidence here.
 

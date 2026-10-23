@@ -13,6 +13,12 @@ $logPath = Join-Path $projectRoot 'artifacts\web-export.log'
 & $Godot --headless --path $projectRoot --export-release 'Web' (Join-Path $stagingRoot 'index.html') --log-file $logPath
 if ($LASTEXITCODE -ne 0) { throw 'Web export failed. Install matching official 4.7.2 Web templates (python tools/install_web_templates.py for the local portable editor).' }
 if ((Get-Content -LiteralPath $logPath -Raw) -match '(?m)^(SCRIPT ERROR:|ERROR:)') { throw "Web export emitted errors. Read $logPath" }
+# Godot substitutes an empty head-include line and appends a newline. Normalize
+# generated HTML whitespace before hashing so Git's whitespace check stays clean.
+$htmlPath = Join-Path $stagingRoot 'index.html'
+$html = [System.IO.File]::ReadAllText($htmlPath)
+$html = [regex]::Replace($html, '(?m)[\t ]+$', '').TrimEnd() + "`n"
+[System.IO.File]::WriteAllText($htmlPath, $html, [System.Text.UTF8Encoding]::new($false))
 & node (Join-Path $PSScriptRoot 'verify_web_export.mjs') --directory $stagingRoot --write-manifest
 if ($LASTEXITCODE -ne 0) { throw 'Incomplete export; existing web build was preserved.' }
 # Replace only names owned by the previous generated manifest; preserve other files.
