@@ -4,9 +4,11 @@ Date: **24 October 2026, Asia/Kuala_Lumpur**.
 
 ## Current result
 
-The complete official Godot Web release is built, validated over local HTTP, and accepted by a local Vercel production build. The original native game and its physics calculations are preserved. **Interactive browser verification is pending because the browser-control tool reports no connected browsers. Production has not been changed or claimed playable.**
+**The existing production URL now serves the Godot game with HTTP 200.** All seven game assets and the manifest match the local export's hashes; JavaScript, WASM and PCK responses have the expected MIME types. The user manually confirmed that the room loads, keyboard movement/jumping/traversal work, pause/resume works, checkpoint/save persistence works after reloading, the physics bench returns about 19.980 m, and no critical console or asset-loading errors were observed.
 
-The existing production URL was verified to return **HTTP 404 / `X-Vercel-Error: NOT_FOUND`** before these changes. The new files and configuration are ready for the existing Git-based deployment once browser verification is available. No replacement Vercel project or domain was created.
+**No automated interactive browser tests were run:** the browser-control tool still reports no connected browsers. The gameplay result is explicitly user-verified. The original Windows/Android codebase and physics calculations are preserved; no rebuild or gameplay rewrite was performed during this final verification.
+
+The original HTTP 404 is resolved. GitHub `main` was already at `b02f968b4e4cebe64376dffcee130b665b8370a6` when final verification resumed, and the existing Git integration had deployed it. No duplicate game push, replacement Vercel project or domain was needed. The user subsequently authorized any needed verification-report follow-up push.
 
 ## Verified root cause of the 404
 
@@ -80,17 +82,24 @@ Dashboard settings require no change beyond honoring the committed configuration
 | Complete/missing-JS/corrupt-WASM/modified-pack/oversized/stale manifest cases | **6 passed, 0 failed**; `node tests/test_web_integrity.mjs` |
 | Local HTTP `/` and all seven game files plus manifest | PASS: HTTP 200, correct types and exact hashes; missing WASM route returned 404 |
 | Vercel configuration/local production build | PASS; actual CLI build and `.vercel/output/static` verification |
-| Browser engine initialization / WebGL rendering | **NOT RUN: no connected browser** |
-| Browser keyboard, traversal, pause/UI, checkpoint and persistence after reload | **NOT RUN**; native equivalents pass, which does not establish browser behavior |
-| Browser console/network inspection | **NOT RUN**; HTTP/asset checks do not substitute for it |
-| Edge / Firefox / mobile-browser emulation | **NOT RUN**; Edge and Firefox are installed, but no browser is exposed to the browser-control tool |
+| Final local HTTP export validation and validator failure cases | PASS again: seven game files plus manifest match over HTTP; six integrity cases passed; existing preview on port 8060 reused |
+| Production `/`, game assets and manifest | PASS: HTTP 200, exact hashes and correct types; missing WASM route remains 404 |
+| Generated engine/worklet JavaScript syntax and WASM module integrity | PASS via Node syntax/WASM checks; browser initialization confirmed manually below |
+| Browser engine initialization / WebGL rendering | **PASS — user-confirmed manual test**; no automated browser connection |
+| Browser keyboard, gap traversal, pause/UI, checkpoint and persistence after reload | **PASS — user-confirmed manual checklist** |
+| Physics bench in the live browser | **PASS — user confirmed about 19.980 m** |
+| Browser console/network inspection | **PASS — user confirmed no critical console errors or failed JS/WASM/PCK requests**; no automated console inspection |
+| Automated Edge / Firefox / mobile-browser emulation | **NOT RUN**; Edge and Firefox are installed, but no browser is exposed to the browser-control tool. The manual browser/version was not specified. |
 | Actual Android mobile browser | **NOT RUN** |
 | Native Android APK export/device test | **NOT RUN**; SDK/adb/Android templates remain absent |
-| Production after this change / Git-triggered deployment / hosted CI | **NOT RUN** pending the browser validation gate |
+| Existing Git-triggered production deployment | PASS: READY, correct project/domain, Git source `b02f968b4e4cebe64376dffcee130b665b8370a6`; build log passed the export integrity check |
+| Hosted CI result | Not independently checked in this final verification; not used as evidence of browser playability |
+
+The native Godot/Windows test results above were obtained during implementation and were not unnecessarily rebuilt or rerun in this final pass. The game sources and artifacts remained unchanged. Current HTTP/integrity checks and the user's manual gameplay confirmation supply the final verification evidence.
 
 The unchanged physics fixtures remain approximately 19.9796126402 m projectile range, 3.2058581578 m/s² ramp acceleration, 6.2641839053 m/s ideal fall speed, and 2 A. Existing SI assumptions and numerical tolerances remain in `tests/unit/test_physics.gd`. No scientific file was edited to make Web export work.
 
-Windows graphical tests used the existing NVIDIA GeForce MX250 / OpenGL 3.3 Compatibility environment. The native PNG evidence is under `artifacts/phase0-touch.png`, `phase0-bench.png`, and `phase0-pause.png`. No browser screenshot is claimed. The Android build-tools warning during editor/export enumeration remains attributable to the missing native Android SDK.
+Windows graphical tests used the existing NVIDIA GeForce MX250 / OpenGL 3.3 Compatibility environment. The native PNG evidence is under `artifacts/phase0-touch.png`, `phase0-bench.png`, and `phase0-pause.png`. No browser screenshot or automated browser run is claimed. Live HTTP headers/HTML are saved in `artifacts/vercel-final-headers.txt` and `artifacts/vercel-final.html`; sanitized deployment/SHA evidence is in `artifacts/vercel-final-deployment.json`. The Android build-tools warning during editor/export enumeration remains attributable to the missing native Android SDK.
 
 ## Files modified or added
 
@@ -104,16 +113,37 @@ No unrelated preexisting working-tree edits were present. Windows/Android preset
 
 Base commit: **`220c6dbeb1d1e922741ed2b863ad148bead86604`**, `main`, matching `origin/main` before work. Remote: `https://github.com/pekchunhoe/chronicles-of-aetheria.git`.
 
-The main focused local commit is **`9005b33bb4b38631355f152e2c066b2642c1087a`**, **`Add Godot Web export and fix Vercel deployment`**. A small follow-up normalizes generated HTML whitespace and refreshes this evidence without rewriting history. Both are **not pushed**: a safe push/production deployment is gated on the required browser tests. No force-push/history rewrite, deployment deletion or domain change is authorized or needed. Use `git log -2 --format="%H %s"` to identify both local commits.
+The implementation commits are **`9005b33bb4b38631355f152e2c066b2642c1087a`** (`Add Godot Web export and fix Vercel deployment`) and **`b02f968b4e4cebe64376dffcee130b665b8370a6`** (`Normalize generated Web HTML and refresh validation evidence`). Both were already on `origin/main` at the start of final verification; no duplicate push was necessary.
 
-**Production URL:** https://chronicles-of-aetheria-five.vercel.app/ — latest verified production state is the original **HTTP 404**, not a successful game deployment. A local successful Vercel build does not change that status.
+Verified game deployment: **`dpl_EwGBj1hJHALmpmTh5uznFfLMNBdG`**, target production, state **READY**, source **`b02f968b4e4cebe64376dffcee130b665b8370a6`**, URL `https://chronicles-of-aetheria-hf0nc23tx-pek-explains-physics.vercel.app`, with the original production domain attached. Its build logs cloned the expected SHA, passed the Web integrity validator and completed deployment. The user then confirmed live gameplay and authorized the verification-report follow-up push.
+
+The report-only follow-up uses the same existing `main` branch and Git integration; it does not modify game artifacts. Its exact final Git SHA/deployment state are recorded by `git log -1 --format="%H %s"` and `artifacts/vercel-final-deployment.json` after the authorized push. Identical production asset hashes tie the final documentation-only deployment to the manually verified game.
+
+**Production URL:** https://chronicles-of-aetheria-five.vercel.app/ — **HTTP 200, game assets verified, gameplay manually confirmed by the user**. Automated browser interaction remains unavailable. No force-push, history rewrite, new Vercel project, domain change or credential deletion was performed during final verification.
+
+## Commit and environment audit
+
+The 27 implementation-change paths were reviewed: only game source, Web export, configuration, tests, tooling and documentation are included. No environment files, `.vercel/` metadata, `.godot/` caches, `.tools/` installations, native builds, signing material or credentials are committed. Credential-pattern checks found no credential material. A PEM header literal in WASM was verified to be part of the official byte-identical Godot template; no complete private key block was found. No secret values were printed. Existing environment files were not modified or deleted in this final pass.
 
 ## Resume and future updates
 
-1. Keep the local HTTP server at `http://127.0.0.1:8060/` running (`python tools/serve_web.py`). Connect a browser, or perform the required browser checks manually: loading, canvas rendering/resizing, A/D/Space, platform/gap, pause/resume, checkpoint/fall recovery, bench result, save/reload and console/network errors. Test touch landscape/fullscreen and browser visibility/storage separately.
+1. Keep the local HTTP server at `http://127.0.0.1:8060/` running (`python tools/serve_web.py`). The existing server was already serving the correct export and was reused. For future updates, repeat the manual or connected-browser checklist below. Test touch landscape/fullscreen and browser visibility/storage separately.
 2. Fix any browser-specific failures, then regenerate with `tools/export_web.ps1`. Re-run HTTP/hash checks and any affected native regression checks.
 3. Review the focused commits and `web/` completeness; ensure `.env*`, `.vercel/`, `.godot/`, `.tools/` and signing material are excluded. Run `git push origin main` only after the required browser checks pass. This uses the existing verified remote and branch.
 4. Let the existing GitHub→Vercel integration deploy. Inspect the existing project's deployment and match its Git SHA. Avoid a duplicate CLI production deployment.
 5. Run `node tools/verify_web_export.mjs --url https://chronicles-of-aetheria-five.vercel.app/`, confirm HTTP 200 and exact game assets, then open the production game and repeat keyboard/touch/console checks. Record the URL, SHA, deployment ID and actual browser evidence here.
 
 The README contains the full repeatable update workflow and Android prerequisites. Reference documentation: [Godot 4.7 Web export](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_web.html), [custom HTML shell](https://docs.godotengine.org/en/4.7/tutorials/platform/web/customizing_html5_shell.html), [Vercel configuration](https://vercel.com/docs/project-configuration/vercel-json). No React rewrite, replacement engine, paid API, cloud game backend, or native-Android compatibility claim was introduced.
+
+## Manual browser checklist and remaining limits
+
+The user confirmed the live desktop checklist on 24 October 2026:
+
+- Loading completes and the graybox room/player appear.
+- A/D movement and Space jumping work, including the gap.
+- Escape pauses and resumes the game.
+- Reaching the east checkpoint, falling, and reloading preserve checkpoint progress.
+- Bench → Run sample displays approximately 19.980 m.
+- DevTools Console has no critical errors; Network has no failed JS/WASM/PCK requests.
+
+For future mobile checks, use a real suitable phone browser in landscape, verify simultaneous stick/jump, button reachability, rotation/insets, fullscreen where supported, background/resume and saved progress after reload. Mobile emulation, actual mobile hardware, real-controller hardware, performance/heat profiling and native Android APK testing remain unverified. No automated interactive browser test or browser screenshot is represented as passed.
