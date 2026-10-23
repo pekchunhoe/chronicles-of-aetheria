@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "puzzle_id": "foundation.projectile_bench.01",
+  "concept_id": "physics.mechanics.linear_motion.projectile_range",
+  "display_name": "Projectile model bench",
+  "model_id": "ideal_projectile_v1",
+  "presentation": "numeric_preview_only_no_world_apparatus_in_phase_0",
+  "inputs_si": {"u_m_per_s": 14.0, "theta_deg": 45.0},
+  "input_units": {"u_m_per_s": "m/s", "theta_deg": "deg"},
+  "acceptance": {"quantity": "range_m", "unit": "m", "target": 20.0, "absolute_tolerance": 0.10},
+  "world_pixels_per_metre": 64.0,
+  "assumptions": ["Same launch and landing height", "Uniform g = 9.81 m/s^2", "Negligible air drag"],
+  "notes": "80 px graybox pit is arcade traversal, not this 20 m experiment. Future apparatus must represent 20 m as 1280 world pixels."
+}

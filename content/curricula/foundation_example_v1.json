@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "version": "foundation_example_v1",
+  "alignment_status": "illustrative_only_pending_authoritative_audit",
+  "notes": "Internal example mapping, not a claim of current official syllabus coverage. Topic IDs are internal, not official chapter identifiers.",
+  "semesters": [
+    {
+      "display_name": "Semester 1",
+      "syllabus_code": "SP015",
+      "topics": [
+        {"topic_id": "example.projectile_motion", "order": 10, "display_name": "Projectile motion (example)", "concept_ids": ["physics.mechanics.linear_motion.projectile_range"]}
+      ]
+    },
+    {"display_name": "Semester 2", "syllabus_code": "SP025", "topics": []}
+  ]
+}

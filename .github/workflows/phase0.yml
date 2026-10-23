@@ -1,0 +1,30 @@
+name: Phase 0 headless checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  foundation:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Download pinned standard engine
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Path '.tools' -Force | Out-Null
+          Invoke-WebRequest 'https://downloads.godotengine.org/?flavor=stable&platform=windows.64&slug=win64.exe.zip&version=4.7.2' -OutFile '.tools/godot.zip'
+          Expand-Archive '.tools/godot.zip' '.tools/godot-4.7.2'
+      - name: Validate scenes and numerical models
+        shell: pwsh
+        run: ./tools/validate.ps1
+      - name: Preserve validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase0-validation-logs
+          path: artifacts/*.log

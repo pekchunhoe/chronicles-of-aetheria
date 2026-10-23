@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "concept_id": "physics.mechanics.linear_motion.projectile_range",
+  "display_name": "Projectile motion on level ground",
+  "learning_objective": "Predict horizontal range under uniform gravity with negligible air drag.",
+  "model_id": "ideal_projectile_v1",
+  "quantities": {"u_m_per_s": "m/s", "theta_deg": "deg", "range_m": "m", "flight_time_s": "s"},
+  "assumptions": ["Same launch and landing height", "Uniform g = 9.81 m/s^2", "Negligible air drag"],
+  "puzzle_ids": ["foundation.projectile_bench.01"],
+  "common_misconception": "Horizontal velocity remains constant in this ideal model; gravity acts vertically."
+}
