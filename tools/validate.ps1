@@ -21,7 +21,7 @@ function Invoke-GodotCheck {
     & $Godot --path $projectRoot --log-file $logPath @EngineArguments
     if ($LASTEXITCODE -ne 0) { throw "$Name failed with exit code $LASTEXITCODE" }
     $log = Get-Content -LiteralPath $logPath -Raw
-    if ($log -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
+    if ($log -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)' -or $log -match 'ObjectDB instances were leaked|resources still in use') {
         throw "$Name emitted an engine/test error. Read $logPath"
     }
     if ($ExpectedSummary -and $log -notmatch $ExpectedSummary) {
@@ -32,8 +32,12 @@ function Invoke-GodotCheck {
 Invoke-GodotCheck 'editor-import' @('--headless', '--editor', '--import', '--quit')
 Invoke-GodotCheck 'unit-tests' @('--headless', '--script', 'res://tests/run_unit_tests.gd', '--quit-after', '1200') 'RESULT: \d+ passed, 0 failed'
 Invoke-GodotCheck 'scene-tests' @('--headless', '--script', 'res://tests/integration/run_scene_tests.gd', '--quit-after', '1200') 'RESULT: \d+ passed, 0 failed'
+Invoke-GodotCheck 'action-tests' @('--headless', '--script', 'res://tests/integration/run_action_tests.gd', '--quit-after', '6000') 'RESULT: \d+ passed, 0 failed'
+Invoke-GodotCheck 'dungeon-route' @('--headless', '--script', 'res://tests/integration/run_dungeon_route.gd', '--quit-after', '6000') 'RESULT: \d+ passed, 0 failed'
 Invoke-GodotCheck 'headless-boot' @('--headless', '--quit-after', '10')
 if ($Capture) {
     Invoke-GodotCheck 'graphical-scene-tests' @('--script', 'res://tests/integration/run_scene_tests.gd', '--quit-after', '1200', '--', '--capture') 'RESULT: \d+ passed, 0 failed'
+    Invoke-GodotCheck 'graphical-action-tests' @('--script', 'res://tests/integration/run_action_tests.gd', '--quit-after', '6000', '--', '--capture') 'RESULT: \d+ passed, 0 failed'
+    Invoke-GodotCheck 'graphical-dungeon-route' @('--script', 'res://tests/integration/run_dungeon_route.gd', '--quit-after', '6000') 'RESULT: \d+ passed, 0 failed'
 }
-Write-Output "Phase 0 validation passed with $version. Device and export gates are separate."
+Write-Output "Phase 1 validation passed with $version. Device and export gates are separate."

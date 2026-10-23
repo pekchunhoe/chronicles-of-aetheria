@@ -21,39 +21,65 @@ mouse_filter = 2
 script = ExtResource("2")
 
 [node name="Actions" type="Control" parent="."]
-offset_right = 302.0
-offset_bottom = 168.0
+offset_right = 340.0
+offset_bottom = 176.0
 mouse_filter = 2
 
 [node name="Jump" type="Control" parent="Actions"]
-offset_left = 194.0
-offset_top = 62.0
-offset_right = 302.0
-offset_bottom = 168.0
+offset_left = 246.0
+offset_top = 82.0
+offset_right = 340.0
+offset_bottom = 176.0
 script = ExtResource("3")
 action = "jump"
 caption = "JUMP"
 
 [node name="Interact" type="Control" parent="Actions"]
-offset_left = 92.0
-offset_top = 76.0
-offset_right = 184.0
-offset_bottom = 168.0
+offset_left = 174.0
+offset_top = 0.0
+offset_right = 250.0
+offset_bottom = 66.0
 script = ExtResource("3")
 action = "interact"
 caption = "SAVE"
 
 [node name="Scan" type="Control" parent="Actions"]
-offset_left = 144.0
-offset_right = 236.0
+offset_left = 88.0
+offset_right = 164.0
 offset_bottom = 66.0
 script = ExtResource("3")
 action = "scan"
 caption = "SCAN"
 
 [node name="Pause" type="Control" parent="Actions"]
-offset_right = 82.0
+offset_right = 78.0
 offset_bottom = 66.0
 script = ExtResource("3")
 action = "pause"
 caption = "PAUSE"
+
+[node name="Light" type="Control" parent="Actions"]
+offset_left = 148.0
+offset_top = 82.0
+offset_right = 238.0
+offset_bottom = 176.0
+script = ExtResource("3")
+action = "light_attack"
+caption = "LIGHT"
+
+[node name="Heavy" type="Control" parent="Actions"]
+offset_left = 50.0
+offset_top = 82.0
+offset_right = 140.0
+offset_bottom = 176.0
+script = ExtResource("3")
+action = "heavy_attack"
+caption = "HEAVY"
+
+[node name="Dodge" type="Control" parent="Actions"]
+offset_left = 260.0
+offset_right = 340.0
+offset_bottom = 72.0
+script = ExtResource("3")
+action = "dodge"
+caption = "DODGE"

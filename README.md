@@ -1,8 +1,8 @@
-# Chronicles of Aetheria — Phase 0 and Web export
+# Chronicles of Aetheria — The Broken Laws / Phase 1
 
-A small, offline Godot foundation for an original 2D action adventure. It contains one graybox room, a controllable placeholder, an elevated platform, a jumpable pit, a checkpoint, a camera, pause/settings UI, and an idealized physics model bench. Combat, a dungeon, bosses, shops and the seven kingdoms belong to later phases.
+A playable, offline 2D action RPG prototype set in **Mechanical Citadel — Combat Training Sector**. Explore a connected graybox dungeon, use a three-cut light combo or a heavy sword strike, dodge telegraphed attacks, fight Mechanical Crawlers and Defensive Turrets, activate checkpoints, collect an optional Axiom shard, and reach the east exit. All shapes and synthesized sound effects are original placeholders. Bosses, shops and the full seven-kingdom adventure remain outside this phase.
 
-Windows, native Android and Web use the same GDScript codebase, with separate export presets. The complete browser release is generated into `web/`. See [the Web/Vercel deployment report](GODOT_WEB_VERCEL_DEPLOYMENT_REPORT.md) for the current production and browser-verification status.
+Windows, Android and Web share one GDScript codebase and separate export presets. The complete browser release is generated into `web/`. See [the Phase 1 implementation report](PHASE_1_IMPLEMENTATION_REPORT.md) for actual current validation, artifacts, limitations and the exact file list. [The Web/Vercel deployment report](GODOT_WEB_VERCEL_DEPLOYMENT_REPORT.md) records the historical Phase 0 production release. **Phase 1 has not been pushed or deployed.**
 
 **Engine: Godot 4.7.2 stable, standard GDScript edition.** The world renders into a fixed **640 × 360 SubViewport**. UI renders separately at a scalable 1280 × 720 reference size. Compatibility/OpenGL rendering is selected. There are no third-party art/audio assets or game dependencies.
 
@@ -26,16 +26,23 @@ For a fresh checkout, download the [official 4.7.2 standard engine](https://godo
 | --- | --- | --- |
 | Move | A/D or Left/Right | Left stick / D-pad |
 | Jump (hold for height) | Space | A / Cross |
-| Save current progress | E | X / Square |
+| Light attack / three-cut combo | J | X / Square |
+| Heavy attack (Breaker) | K | Y / Triangle |
+| Dodge | Shift | B / Circle |
+| Save current progress | E | Right shoulder |
 | Toggle numerical bench | Q | Left shoulder |
 | Pause / resume | Escape | Start |
 | Return to active checkpoint | R | Back / Select |
 
-Jump onto the platform, then cross the pit to reach the east checkpoint. Walking through its flag saves it automatically. Falling returns to the active checkpoint. Saving records the checkpoint, not the player's exact position. The bench opens a numerical preview; use its **Run sample** button to validate the sample and record a local discovery.
+The opening room is safe. Hold Space to cross its short gap and reach the original east checkpoint, then continue east to the first crawler. Climb the three steps, avoid the turret's locked aim line, and reach the relay beyond it. The relay restores health and saves automatically. The next corridor combines both enemy types; its upper passage contains an optional shard and rejoins the main route. Cross the final gap, defeat the last crawler, and enter the mint-coloured EXIT.
+
+Tap J again during late recovery to chain light attacks. K trades startup time for damage and reach. Dodge travels 92 pixels over 0.18 seconds, with 0.12 seconds of early invulnerability, 0.14 seconds of recovery and a 0.72-second cooldown. Walls stop both dodges and sword hits. Enemies telegraph attacks; there is no unavoidable contact damage.
+
+Kael has 100 health. Hits grant 0.7 seconds of immunity; death disables gameplay for 0.9 seconds, then restores full health at the last checkpoint. Nonlethal falls cost 20 health and return immediately. Returning to a checkpoint resets enemies and removes projectiles. Shards, completion, discoveries and control preferences persist. Saving records the checkpoint, not exact position or transient enemy health. The bench remains a numerical preview; **Run sample** validates the existing SI model and records a discovery.
 
 Pause → select an action → press a new key to remap the keyboard. Duplicate keys are rejected. Defaults can be restored from the same menu. Controller mappings are configured in `InputAdapter.install_defaults()`; a controller-remapping UI is deferred.
 
-On Android, the touch overlay is enabled automatically. On desktop, enable **Show touch controls on desktop** in the pause menu. The left stick supports simultaneous jumping with another finger; right-side controls offer jump, save, scan and pause. Size and opacity are configurable and saved. The overlay uses real `InputEventScreenTouch`/`ScreenDrag` events, so ordinary desktop mouse clicks do not simulate a finger. Position customization is deferred.
+On Android and touch browsers, touch controls appear automatically. On desktop, enable **Show touch controls on desktop** in the pause menu. The left stick supports simultaneous jumping and attacking with other fingers; right-side buttons offer light, heavy, jump, dodge, save, scan and pause. Size and opacity are configurable and saved. The overlay uses real `InputEventScreenTouch`/`ScreenDrag` events, so ordinary desktop mouse clicks do not simulate a finger. Position customization is deferred.
 
 **Android compatibility has not been certified.** The touch scene has been rendered on Windows and exercised with synthetic finger events. No APK or actual Android device run was produced in this environment.
 
@@ -88,8 +95,11 @@ For future quantitative apparatus, **64 world pixels = 1 m**; thus 20 m must spa
 | Location | Responsibility |
 | --- | --- |
 | `scenes/boot/boot.tscn`, `scripts/core/boot.gd` | Composition, high-resolution UI, pause/lifecycle handling |
-| `scenes/regions/graybox_room.tscn`, `scripts/core/graybox_room.gd` | Original graybox geometry, checkpoint, safe respawn |
-| `scenes/player/`, `scripts/player/player.gd` | Fixed-step, variable jump, coyote time and jump buffer |
+| `scenes/regions/graybox_room.tscn`, `scripts/core/graybox_room.gd` | Original room extended to a 3328-pixel dungeon; checkpoint/reward/completion coordination |
+| `scenes/player/`, `scripts/player/player.gd`, `dodge_controller.gd` | Fixed-step movement, acceleration, variable jump, coyote time, buffer, dodge and action coordination |
+| `scripts/combat/`, `content/combat/` | Reusable health, weapon timelines, directional hit queries, tunable attack/enemy resources, effects and original audio |
+| `scripts/enemies/`, `scenes/enemies/` | Shared enemy life/LOS/reset, crawler AI, turret AI and swept projectiles |
+| `scripts/level/` | Reusable collidable platform and checkpoint/relic/exit marker components |
 | `scripts/platform/`, `scenes/ui/touch_overlay.tscn` | Keyboard/controller/touch adapter, finger ownership and safe-area layout |
 | `scripts/core/save_repository.gd` | Versioned offline JSON, temp-file replacement, backup/recovery |
 | `scripts/physics_models/physics_model.gd` | Four independent SI models and world conversion |
@@ -101,7 +111,7 @@ For future quantitative apparatus, **64 world pixels = 1 m**; thus 20 m must spa
 
 **Semester 1** and **Semester 2** are fixed display identities. `SP015` and `SP025` are replaceable codes in a versioned mapping, not save identities. Topics are dynamic arrays, including an empty Semester 2 example. `foundation_example_v1` is illustrative and explicitly awaits an authoritative syllabus audit; it does not claim current curriculum alignment.
 
-Saves use separate `save_schema_version: 1` and `content_version: phase0.1`, stable checkpoint/concept/puzzle IDs, discoveries, puzzle state, mode choices and control preferences. Normal saves use Godot's `user://save_v1.json`; the last valid previous save is `.bak`. A same-directory `.tmp` file is flushed and renamed for replacement. Corrupt primary data can recover from backup; an unsupported newer schema is preserved and cannot be overwritten by this version. No older schema exists yet: implement explicit, tested migrations when introducing schema 2. Atomic rename is not a guarantee against every OS/filesystem power-loss failure.
+Saves retain `save_schema_version: 1`; new snapshots use `content_version: phase1.0`. Phase 0 saves load unchanged, including `room_start` and `east_checkpoint`. The new relay is `citadel_checkpoint`; optional reward and completion use existing `collected_crystals` and `unlocks` arrays. Old custom bindings take priority over new action defaults, with a free fallback key assigned to a conflicting default. Normal saves use Godot's `user://save_v1.json`; the last valid previous save is `.bak`. A same-directory `.tmp` file is flushed and renamed for replacement. Corrupt data can recover from backup; unsupported newer schemas are preserved and cannot be overwritten. Explicit migration is still required if schema 2 is ever introduced. Atomic rename does not guarantee protection from every OS/filesystem power failure.
 
 Background/focus loss pauses the scene and saves locally. Resume remains paused until the player chooses to continue. Native Android lifecycle and storage behavior still need device testing.
 
@@ -125,7 +135,7 @@ The Android preset targets a landscape, arm64 APK, with Internet/storage permiss
 
 ## Continue development
 
-Read [the original Phase 0 validation report](PHASE_0_VALIDATION_REPORT.md) for its historical results and [the Phase 1 handoff](docs/PHASE_1_HANDOFF.md) for the next gameplay work. Source copies of the supplied starter prompt and GDD are preserved under `docs/`; their source files in the adjacent folder were unchanged. The existing GitHub repository is `pekchunhoe/chronicles-of-aetheria`, with production branch `main`. Current Web commit/push/deployment status is recorded in the Web deployment report.
+Read [the Phase 1 implementation report](PHASE_1_IMPLEMENTATION_REPORT.md) for current results and remaining validation. [The Phase 0 report](PHASE_0_VALIDATION_REPORT.md) and [original handoff](docs/PHASE_1_HANDOFF.md) remain historical records. Source copies of the starter prompt and GDD are preserved under `docs/`. The existing GitHub repository remains `pekchunhoe/chronicles-of-aetheria`, with production branch `main`. Before Phase 2, finish real browser/mobile/controller playtests, then introduce reviewed SI apparatus and Vector Sight through the existing independent physics interfaces.
 
 ## Export and run the Web game
 
@@ -173,9 +183,9 @@ For each gameplay update:
 
 1. Make focused Godot changes. Run `tools/validate.ps1 -Capture` and `tools/export_windows.ps1 -Graphical`.
 2. Run `tools/export_web.ps1`, then the validator and local HTTP server above. A source change without a fresh export deliberately fails the Vercel integrity check.
-3. Test a real desktop browser: startup, movement, the platform/gap, pause, checkpoint/fall recovery, bench results, saving, reload, resizing and browser console/network errors. Test touch emulation and an actual mobile browser separately; neither certifies the native APK.
+3. Test a real desktop browser: movement/jumps, light combo/heavy/dodge, crawler/turret fights, damage/death/relay respawn, upper-passage shard, exit, pause, bench, save/reload, resize and console/network errors. Test simultaneous touch actions and an actual mobile browser separately; neither certifies the native APK.
 4. Review `git status`, `git diff` and staged files. Stage only the requested source/docs/configuration changes and the **complete** `web/` export. Keep `.tools/`, `.godot/`, `.vercel/`, `.env*`, caches, local builds and signing material excluded.
-5. Commit, then push to the existing `origin/main` only after the required local/browser checks pass. Wait for the existing Vercel Git deployment.
+5. Commit locally after checks pass. **Obtain explicit user authorization before pushing or deploying.** Only then push to the existing `origin/main` and wait for its existing Vercel Git deployment.
 6. Match its Git SHA to the pushed commit, then run `node tools/verify_web_export.mjs --url https://chronicles-of-aetheria-five.vercel.app/`. Also open the production URL and verify actual gameplay and the console; HTTP/asset checks alone do not establish playability.
 
 The GitHub Actions workflow runs the Godot checks and verifies the committed Web export. It does not publish the game or create another Vercel project.

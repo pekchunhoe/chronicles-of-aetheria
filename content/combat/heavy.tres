@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+title = "Breaker"
+damage = 34
+startup = 0.25
+active = 0.15
+recovery = 0.34
+reach = 54.0
+height = 40.0
+knockback = 300.0
+movement_multiplier = 0.35
+color = Color(1, 0.79, 0.4, 1)

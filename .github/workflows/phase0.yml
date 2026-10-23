@@ -1,4 +1,4 @@
-name: Phase 0 headless checks
+name: Aetheria gameplay and physics checks
 on:
   push:
   pull_request:
@@ -34,5 +34,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase0-validation-logs
+          name: aetheria-validation-logs
           path: artifacts/*.log

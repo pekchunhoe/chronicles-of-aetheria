@@ -27,11 +27,11 @@ try {
     $env:AETHERIA_SMOKE_SAVE_PATH = Join-Path $artifactRoot "export-smoke-save-$([guid]::NewGuid().ToString('N')).json"
     # Waiting explicitly is necessary for the GUI-subsystem Windows executable.
     $smoke = Start-Process -FilePath $buildPath -WorkingDirectory (Split-Path -Parent $buildPath) -ArgumentList @(
-        '--headless', '--quit-after', '600', '--log-file', ('"' + $smokeLog + '"'),
+        '--headless', '--quit-after', '1800', '--log-file', ('"' + $smokeLog + '"'),
         '--', '--foundation-smoke'
     ) -WindowStyle Hidden -PassThru -Wait
     $smokeText = Get-Content -LiteralPath $smokeLog -Raw
-    if ($smoke.ExitCode -ne 0 -or $smokeText -notmatch 'EXPORT SMOKE PASS:' -or $smokeText -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
+    if ($smoke.ExitCode -ne 0 -or $smokeText -notmatch 'EXPORT SMOKE PASS:' -or $smokeText -notmatch 'PACKAGED ACTION PASS:' -or $smokeText -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
         throw "Exported application smoke test failed; read $smokeLog"
     }
 } finally {
@@ -39,11 +39,17 @@ try {
 }
 if ($Graphical) {
     $graphicsLog = Join-Path $artifactRoot 'windows-export-graphical-smoke.log'
-    $graphics = Start-Process -FilePath $buildPath -WorkingDirectory (Split-Path -Parent $buildPath) -ArgumentList @(
-        '--quit-after', '120', '--log-file', ('"' + $graphicsLog + '"')
-    ) -WindowStyle Hidden -PassThru -Wait
-    if ($graphics.ExitCode -ne 0 -or (Get-Content -LiteralPath $graphicsLog -Raw) -match '(?m)^(SCRIPT ERROR:|ERROR:)') {
-        throw "Exported graphics startup failed; read $graphicsLog"
+    try {
+        $env:AETHERIA_SMOKE_SAVE_PATH = Join-Path $artifactRoot "export-graphics-save-$([guid]::NewGuid().ToString('N')).json"
+        $graphics = Start-Process -FilePath $buildPath -WorkingDirectory (Split-Path -Parent $buildPath) -ArgumentList @(
+            '--quit-after', '1800', '--log-file', ('"' + $graphicsLog + '"'), '--', '--foundation-smoke', '--capture'
+        ) -WindowStyle Hidden -PassThru -Wait
+        $graphicsText = Get-Content -LiteralPath $graphicsLog -Raw
+        if ($graphics.ExitCode -ne 0 -or $graphicsText -notmatch 'PACKAGED ACTION PASS:' -or $graphicsText -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
+            throw "Exported graphical action checks failed; read $graphicsLog"
+        }
+    } finally {
+        $env:AETHERIA_SMOKE_SAVE_PATH = $oldSmokePath
     }
 }
 Write-Output "Windows debug export and packaged-content smoke test passed: $buildPath"

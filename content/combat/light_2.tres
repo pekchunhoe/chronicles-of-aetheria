@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+title = "Cut II"
+damage = 17
+startup = 0.06
+active = 0.11
+recovery = 0.18
+reach = 44.0
+knockback = 170.0

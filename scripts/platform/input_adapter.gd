@@ -4,7 +4,7 @@ extends Node
 ## from Input.action_press, so touch release cannot cancel a physical held key.
 
 signal bindings_changed
-const ACTIONS: Array[String] = ["move_left", "move_right", "jump", "interact", "scan", "pause", "restart"]
+const ACTIONS: Array[String] = ["move_left", "move_right", "jump", "interact", "scan", "pause", "restart", "light_attack", "heavy_attack", "dodge"]
 var virtual_sources: Dictionary = {}
 var axis_sources: Dictionary = {}
 var pending_presses: Dictionary = {}
@@ -21,11 +21,13 @@ func install_defaults() -> void:
 		"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT],
 		"jump": [KEY_SPACE], "interact": [KEY_E], "scan": [KEY_Q],
 		"pause": [KEY_ESCAPE], "restart": [KEY_R],
+		"light_attack": [KEY_J], "heavy_attack": [KEY_K], "dodge": [KEY_SHIFT],
 	}
 	var buttons: Dictionary = {
 		"move_left": JOY_BUTTON_DPAD_LEFT, "move_right": JOY_BUTTON_DPAD_RIGHT,
-		"jump": JOY_BUTTON_A, "interact": JOY_BUTTON_X, "scan": JOY_BUTTON_LEFT_SHOULDER,
+		"jump": JOY_BUTTON_A, "interact": JOY_BUTTON_RIGHT_SHOULDER, "scan": JOY_BUTTON_LEFT_SHOULDER,
 		"pause": JOY_BUTTON_START, "restart": JOY_BUTTON_BACK,
+		"light_attack": JOY_BUTTON_X, "heavy_attack": JOY_BUTTON_Y, "dodge": JOY_BUTTON_B,
 	}
 	for action in ACTIONS:
 		if not InputMap.has_action(action):
@@ -136,20 +138,42 @@ func export_key_bindings() -> Dictionary:
 
 
 func import_key_bindings(bindings: Dictionary) -> void:
+	# Saved Phase 0 bindings have priority over the three newly introduced defaults.
+	# For example, an old Jump=J save keeps J and gets a free key for Light attack.
+	var reserved: Dictionary = {}
 	for action in ACTIONS:
-		var keys: Variant = bindings.get(action)
-		if not keys is Array or keys.is_empty():
+		var saved: Variant = bindings.get(action, [])
+		if saved is Array:
+			for key in saved:
+				if (key is int or key is float) and is_finite(float(key)) and key > 0:
+					reserved[int(key)] = true
+	var defaults: Dictionary = export_key_bindings()
+	var used: Dictionary = {}
+	for action in ACTIONS:
+		var keys: Array[int] = []
+		var saved: Variant = bindings.get(action, [])
+		if saved is Array:
+			for key in saved:
+				if (key is int or key is float) and is_finite(float(key)) and key > 0 and not used.has(int(key)):
+					keys.append(int(key))
+					used[int(key)] = true
+		if keys.is_empty():
+			for key in defaults[action]:
+				if not used.has(key) and not reserved.has(key):
+					keys.append(key)
+					used[key] = true
+		if keys.is_empty():
+			for key in [KEY_F, KEY_G, KEY_H, KEY_L, KEY_U, KEY_I, KEY_O, KEY_P, KEY_B, KEY_N, KEY_M, KEY_T, KEY_Y, KEY_C, KEY_V, KEY_Z, KEY_X]:
+				if not used.has(key) and not reserved.has(key):
+					keys.append(key)
+					used[key] = true
+					break
+		if keys.is_empty():
 			continue
-		var valid: bool = true
-		for key in keys:
-			if not (key is int or key is float) or key <= 0:
-				valid = false
-		if not valid:
-			continue
-		rebind_key(action, int(keys[0]))
+		rebind_key(action, keys[0])
 		for index in range(1, keys.size()):
 			var event := InputEventKey.new()
-			event.physical_keycode = int(keys[index])
+			event.physical_keycode = keys[index]
 			InputMap.action_add_event(action, event)
 	bindings_changed.emit()
 

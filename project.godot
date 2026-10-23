@@ -2,8 +2,9 @@
 config_version=5
 
 [application]
+; Keep the Phase 0 identity so native and browser user:// saves retain their path.
 config/name="Chronicles of Aetheria — Phase 0"
-config/description="Offline foundation: graybox traversal and audited SI models."
+config/description="Mechanical Citadel: combat training sector."
 run/main_scene="res://scenes/boot/boot.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -27,6 +28,13 @@ pointing/emulate_mouse_from_touch=false
 
 [physics]
 common/physics_ticks_per_second=60
+
+[layer_names]
+2d_physics/layer_1="World"
+2d_physics/layer_2="Player"
+2d_physics/layer_3="Progression triggers"
+2d_physics/layer_4="Enemies"
+2d_physics/layer_5="Hostile projectiles"
 
 [rendering]
 renderer/rendering_method="gl_compatibility"

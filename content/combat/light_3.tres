@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+title = "Cut III"
+damage = 23
+startup = 0.10
+active = 0.13
+recovery = 0.24
+reach = 48.0
+knockback = 230.0
+color = Color(0.7, 0.95, 1, 1)

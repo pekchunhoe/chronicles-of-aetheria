@@ -4,7 +4,7 @@ extends RefCounted
 ## Unsupported future versions are preserved, never silently replaced.
 
 const SCHEMA_VERSION: int = 1
-const CONTENT_VERSION: String = "phase0.1"
+const CONTENT_VERSION: String = "phase1.0"
 const MAX_SAVE_BYTES: int = 1048576
 var path: String
 var last_error: String = ""

@@ -25,16 +25,25 @@ var status_message: String = ""
 var save_writable: bool = true
 var pause_panel: PanelContainer
 var pause_scroll: ScrollContainer
+var health_bar: ProgressBar
+var health_label: Label
+var combat_label: Label
+var feedback_label: Label
+var hud_left: float = 0.0
+var completion_notice_left: float = 0.0
+var validation_mode: bool = false
 @onready var room: Node2D = $WorldViewport/GrayboxRoom
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	get_window().title = "Chronicles of Aetheria — The Broken Laws"
 	if WebSupport.is_touch_device():
 		get_window().content_scale_size = Vector2i(960, 540)
 	# Integration tests override storage, so they cannot touch a player's real save.
 	var save_path: String = str(get_meta("save_path", "user://save_v1.json"))
 	var smoke_mode: bool = "--foundation-smoke" in OS.get_cmdline_user_args() and OS.is_debug_build()
+	validation_mode = smoke_mode
 	if smoke_mode:
 		save_path = OS.get_environment("AETHERIA_SMOKE_SAVE_PATH")
 		if not save_path.is_absolute_path() or FileAccess.file_exists(save_path):
@@ -48,8 +57,11 @@ func _ready() -> void:
 		save_writable = false
 		status_message = saves.last_error
 	room.set_checkpoint(save_data.checkpoint_id)
+	room.restore_progress(save_data)
 	room.respawn()
 	room.checkpoint_reached.connect(_checkpoint_reached)
+	room.progression_changed.connect(_persist)
+	room.sector_completed.connect(_sector_completed)
 	var preferences: Dictionary = save_data.control_preferences
 	var bindings: Variant = preferences.get("bindings", {})
 	if bindings is Dictionary:
@@ -63,13 +75,15 @@ func _ready() -> void:
 	if not loaded or not puzzle_loaded:
 		status_message = "Content validation failed. Check local content files."
 	_build_ui()
+	room.player.health.changed.connect(_health_changed)
+	_health_changed(room.player.health.current, room.player.health.maximum)
 	var web_support := WebSupport.new()
 	web_support.pause_requested.connect(_on_web_pause)
 	add_child(web_support)
 	Controls.bindings_changed.connect(_refresh_bindings)
 	_refresh_bindings()
 	if status_message.is_empty():
-		status_message = "Jump the gap to activate the checkpoint. Falls return you safely."
+		status_message = "Reach the relay, explore the upper passage, then find the east exit."
 	_refresh_status()
 	# The game subtree remains pausable even though UI/lifecycle code always runs.
 	$WorldViewport.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -87,6 +101,8 @@ func _run_standalone_smoke() -> void:
 	if valid:
 		_run_sample()
 		valid = puzzle.solved and saves.load_save().discoveries.size() == 1
+	if valid:
+		valid = await load("res://scripts/core/packaged_smoke.gd").new().run(self)
 	print("EXPORT SMOKE PASS: standalone pack, JSON content, scene, collision, SI puzzle, and isolated save" if valid else "FAIL: packaged foundation validation")
 	for suffix in ["", ".bak", ".tmp"]:
 		if FileAccess.file_exists(saves.path + suffix):
@@ -94,12 +110,17 @@ func _run_standalone_smoke() -> void:
 	get_tree().quit(0 if valid else 1)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if Controls.consume_press("pause"):
 		set_paused(not get_tree().paused)
 	if get_tree().paused:
 		return
-	if Controls.consume_press("restart"):
+	hud_left -= delta
+	completion_notice_left = maxf(0.0, completion_notice_left - delta)
+	if hud_left <= 0.0:
+		_refresh_combat_hud()
+		hud_left = 0.08
+	if Controls.consume_press("restart") and room.player.health.current > 0:
 		room.respawn()
 	if Controls.consume_press("interact"):
 		_persist("Progress saved at " + str(save_data.checkpoint_id).replace("_", " ") + ".")
@@ -130,6 +151,9 @@ func _input(event: InputEvent) -> void:
 
 func _notification(what: int) -> void:
 	if not is_node_ready():
+		return
+	# Hidden debug export checks cannot acquire focus; lifecycle tests use normal mode.
+	if validation_mode and what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
 		return
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
 		set_paused(true)
@@ -193,14 +217,38 @@ func _build_ui() -> void:
 	var header := HBoxContainer.new()
 	top.add_child(header)
 	var title := Label.new()
-	title.text = "AETHERIA  /  PHASE 0"
+	title.text = "AETHERIA  /  TRAINING SECTOR"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_color_override("font_color", Color("9fdfc3"))
 	header.add_child(title)
 	header.add_child(_button("Bench", _toggle_bench))
 	header.add_child(_button("Pause / Controls", func(): set_paused(true)))
+	var vitals := HBoxContainer.new()
+	vitals.add_theme_constant_override("separation", 14)
+	top.add_child(vitals)
+	health_label = Label.new()
+	health_label.add_theme_font_size_override("font_size", 18)
+	health_label.custom_minimum_size.x = 124
+	vitals.add_child(health_label)
+	health_bar = ProgressBar.new()
+	health_bar.custom_minimum_size = Vector2(170, 18)
+	health_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	health_bar.show_percentage = false
+	var health_fill := StyleBoxFlat.new()
+	health_fill.bg_color = Color("8ed8b6")
+	health_fill.set_corner_radius_all(5)
+	health_bar.add_theme_stylebox_override("fill", health_fill)
+	var health_background := StyleBoxFlat.new()
+	health_background.bg_color = Color("253b49")
+	health_background.set_corner_radius_all(5)
+	health_bar.add_theme_stylebox_override("background", health_background)
+	vitals.add_child(health_bar)
+	combat_label = Label.new()
+	combat_label.add_theme_font_size_override("font_size", 18)
+	vitals.add_child(combat_label)
 	help_text = Label.new()
 	help_text.add_theme_font_size_override("font_size", 18)
+	help_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	top.add_child(help_text)
 	bench = PanelContainer.new()
 	bench.visible = false
@@ -218,6 +266,18 @@ func _build_ui() -> void:
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status.add_theme_font_size_override("font_size", 18)
 	ui.add_child(status)
+	var center_feedback := CenterContainer.new()
+	center_feedback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui.add_child(center_feedback)
+	feedback_label = Label.new()
+	feedback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	feedback_label.add_theme_font_size_override("font_size", 28)
+	feedback_label.add_theme_color_override("font_color", Color("d6f7e8"))
+	feedback_label.add_theme_color_override("font_shadow_color", Color("101c2b"))
+	feedback_label.add_theme_constant_override("shadow_offset_x", 2)
+	feedback_label.add_theme_constant_override("shadow_offset_y", 2)
+	center_feedback.add_child(feedback_label)
 	_build_pause(ui)
 	ui.resized.connect(_refresh_status)
 	ui.resized.connect(_resize_pause_menu)
@@ -253,6 +313,10 @@ func _build_pause(parent: Control) -> void:
 	var resume := _button("Resume", func(): set_paused(false))
 	resume.name = "Resume"
 	contents.add_child(resume)
+	contents.add_child(_button("Return to active checkpoint", func():
+		room.respawn()
+		set_paused(false)
+	))
 	menu_status = Label.new()
 	menu_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	contents.add_child(menu_status)
@@ -326,7 +390,7 @@ func _touch_toggled(enabled: bool) -> void:
 func _toggle_bench() -> void:
 	bench.visible = not bench.visible
 	if bench.visible:
-		bench_text.text = "Numerical model preview only. No launcher apparatus in Phase 0.\nSame-height launch, no drag; uniform g = 9.81 m/s^2.\nSemester 1 / illustrative mapping; official syllabus alignment pending."
+		bench_text.text = "Numerical model preview only. No launcher apparatus in this prototype.\nSame-height launch, no drag; uniform g = 9.81 m/s^2.\nSemester 1 / illustrative mapping; official syllabus alignment pending."
 
 
 func _run_sample() -> void:
@@ -359,6 +423,8 @@ func _persist(message: String) -> void:
 
 
 func _snapshot() -> Dictionary:
+	save_data.content_version = Saves.CONTENT_VERSION
+	room.snapshot_progress(save_data)
 	save_data.control_preferences["bindings"] = Controls.export_key_bindings()
 	return save_data
 
@@ -366,9 +432,36 @@ func _snapshot() -> Dictionary:
 func _refresh_bindings() -> void:
 	for action in remap_buttons:
 		remap_buttons[action].text = action.replace("_", " ").capitalize() + "   :   " + Controls.binding_label(action)
-	help_text.text = "Move %s / %s    Jump %s    Scan %s    Save %s    Reset %s" % [
+	help_text.text = "Move %s / %s    Jump %s    Light %s    Heavy %s    Dodge %s    Scan %s    Save %s" % [
 		Controls.binding_label("move_left"), Controls.binding_label("move_right"), Controls.binding_label("jump"),
-		Controls.binding_label("scan"), Controls.binding_label("interact"), Controls.binding_label("restart")]
+		Controls.binding_label("light_attack"), Controls.binding_label("heavy_attack"), Controls.binding_label("dodge"),
+		Controls.binding_label("scan"), Controls.binding_label("interact")]
+
+
+func _health_changed(current: int, maximum: int) -> void:
+	health_label.text = "KAEL  %d / %d" % [current, maximum]
+	health_bar.max_value = maximum
+	health_bar.value = current
+	_refresh_combat_hud()
+
+
+func _refresh_combat_hud() -> void:
+	var fighter: FoundationPlayer = room.player
+	var weapon: String = fighter.combat.attack.title if fighter.combat.attack != null else "Salvager sword"
+	var dodge_status: String = "READY" if fighter.dodge.cooldown_left <= 0.0 else "%.1fs" % fighter.dodge.cooldown_left
+	combat_label.text = "%s   |   Dodge %s   |   Shard %d/1" % [weapon, dodge_status, int(room.relic_collected)]
+	if fighter.health.current <= 0:
+		feedback_label.text = "KAEL HAS FALLEN\nReturning to checkpoint..."
+	elif completion_notice_left > 0.0:
+		feedback_label.text = "TRAINING SECTOR COMPLETE\nAxiom shard: %d / 1  |  Continue exploring" % int(room.relic_collected)
+	else:
+		feedback_label.text = ""
+
+
+func _sector_completed() -> void:
+	completion_notice_left = 4.0
+	_persist("Training sector complete. Progress saved. You can continue exploring.")
+	_refresh_combat_hud()
 
 
 func _refresh_status() -> void:

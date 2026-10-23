@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0e1927">
-  <meta name="description" content="Play the Chronicles of Aetheria Godot foundation in your browser.">
+  <meta name="description" content="Explore the Mechanical Citadel combat training sector in Chronicles of Aetheria.">
   <title>Chronicles of Aetheria — The Broken Laws</title>
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0e1927; color: #edf3ed; }
@@ -33,13 +33,13 @@
 <body>
   <header><span>AETHERIA · GODOT WEB</span><button id="fullscreen" type="button">Fullscreen</button></header>
   <main>
-    <canvas id="canvas" tabindex="0" aria-label="Chronicles of Aetheria game. Move with A and D, jump with Space, pause with Escape.">Your browser needs canvas and WebGL 2 to play this game.</canvas>
+    <canvas id="canvas" tabindex="0" aria-label="Chronicles of Aetheria. Move A/D, jump Space, light attack J, heavy attack K, dodge Shift, pause Escape.">Your browser needs canvas and WebGL 2 to play this game.</canvas>
     <section id="loading" class="overlay" role="status" aria-live="polite">
       <div class="card">
         <h1>Chronicles of Aetheria</h1>
         <p id="message">Loading the Godot game…</p>
         <progress id="progress" aria-label="Game download progress"></progress>
-        <p id="details">Move A/D · Jump Space · Pause Escape<br>Touch controls appear on supported touchscreens.</p>
+        <p id="details">Move A/D · Jump Space · Light J · Heavy K · Dodge Shift · Pause Escape<br>Touch controls appear on supported touchscreens.</p>
         <button id="retry" type="button" hidden>Try again</button>
       </div>
     </section>
