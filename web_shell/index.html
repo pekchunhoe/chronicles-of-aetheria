@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0e1927">
+  <meta name="description" content="Play the Chronicles of Aetheria Godot foundation in your browser.">
+  <title>Chronicles of Aetheria — The Broken Laws</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0e1927; color: #edf3ed; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+    body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+    header { flex: 0 0 42px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 12px; background: #132437; }
+    header span { font-size: 14px; color: #9fdfc3; }
+    button { font: inherit; color: #edf3ed; background: #20394c; border: 1px solid #7cb9c4; border-radius: 6px; padding: 7px 14px; cursor: pointer; }
+    button:focus-visible { outline: 3px solid #9fdfc3; outline-offset: 2px; }
+    main { flex: 1 1 auto; min-height: 0; position: relative; }
+    canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+    .overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: #0e1927; z-index: 2; }
+    .card { width: min(100%, 540px); text-align: center; line-height: 1.5; }
+    h1 { font-size: clamp(22px, 4vw, 30px); color: #9fdfc3; }
+    progress { width: 100%; height: 14px; accent-color: #9fdfc3; }
+    #details { color: #c5d4df; white-space: pre-wrap; overflow-wrap: anywhere; }
+    #rotate { display: none; z-index: 3; }
+    [hidden] { display: none !important; }
+    @media (orientation: portrait) and (pointer: coarse) {
+      #rotate { display: grid; }
+    }
+  </style>
+  $GODOT_HEAD_INCLUDE
+</head>
+<body>
+  <header><span>AETHERIA · GODOT WEB</span><button id="fullscreen" type="button">Fullscreen</button></header>
+  <main>
+    <canvas id="canvas" tabindex="0" aria-label="Chronicles of Aetheria game. Move with A and D, jump with Space, pause with Escape.">Your browser needs canvas and WebGL 2 to play this game.</canvas>
+    <section id="loading" class="overlay" role="status" aria-live="polite">
+      <div class="card">
+        <h1>Chronicles of Aetheria</h1>
+        <p id="message">Loading the Godot game…</p>
+        <progress id="progress" aria-label="Game download progress"></progress>
+        <p id="details">Move A/D · Jump Space · Pause Escape<br>Touch controls appear on supported touchscreens.</p>
+        <button id="retry" type="button" hidden>Try again</button>
+      </div>
+    </section>
+    <section id="rotate" class="overlay" aria-label="Landscape orientation recommended">
+      <div class="card"><h1>Rotate to landscape</h1><p>Turn your phone sideways to reach the game and its touch controls.</p></div>
+    </section>
+  </main>
+  <noscript>This Godot game requires JavaScript, WebAssembly and WebGL 2.</noscript>
+  <script src="$GODOT_URL" onerror="document.getElementById('message').textContent='Game engine download failed. Refresh to retry.'"></script>
+  <script>
+    'use strict';
+    const canvas = document.getElementById('canvas');
+    const loading = document.getElementById('loading');
+    const progress = document.getElementById('progress');
+    const message = document.getElementById('message');
+    const details = document.getElementById('details');
+    const retry = document.getElementById('retry');
+    const fullscreen = document.getElementById('fullscreen');
+    const config = $GODOT_CONFIG;
+    function fail(error) {
+      loading.hidden = false;
+      message.textContent = 'The game could not start';
+      details.textContent = String(error?.message || error) + '\nUse a current browser with WebGL 2, WebAssembly and hardware acceleration enabled.';
+      progress.hidden = true;
+      retry.hidden = false;
+      console.error('Aetheria startup:', error);
+    }
+    retry.addEventListener('click', () => location.reload());
+    fullscreen.hidden = !document.fullscreenEnabled;
+    fullscreen.addEventListener('click', async () => {
+      try {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else {
+          await document.documentElement.requestFullscreen({navigationUI: 'hide'});
+          if (screen.orientation?.lock) await screen.orientation.lock('landscape').catch(() => {});
+        }
+        canvas.focus();
+      } catch (error) { console.info('Fullscreen unavailable:', error.message); }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      fullscreen.textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+    });
+    (async () => {
+      try {
+        if (typeof Engine !== 'function') throw new Error('The engine JavaScript did not download.');
+        const missing = Engine.getMissingFeatures({threads: false});
+        if (missing.length) throw new Error('Missing browser support: ' + missing.join(', '));
+        const engine = new Engine(config);
+        await engine.startGame({
+          canvas,
+          onProgress(current, total) {
+            if (total > 0) { progress.max = total; progress.value = current; }
+            else progress.removeAttribute('value');
+          },
+          onExit() { loading.hidden = false; message.textContent = 'Game stopped'; progress.hidden = true; retry.hidden = false; }
+        });
+        loading.hidden = true;
+        canvas.focus();
+        document.documentElement.dataset.gameState = 'running';
+      } catch (error) { fail(error); }
+    })();
+  </script>
+</body>
+</html>

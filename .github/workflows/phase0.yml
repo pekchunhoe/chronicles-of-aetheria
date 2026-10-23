@@ -22,6 +22,14 @@ jobs:
       - name: Validate scenes and numerical models
         shell: pwsh
         run: ./tools/validate.ps1
+      # The generated Web export is versioned; Vercel serves these exact files.
+      # No engine download or npm dependencies are needed by Vercel itself.
+      - name: Verify committed Web export
+        shell: pwsh
+        run: |
+          node tools/verify_web_export.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/test_web_integrity.mjs
       - name: Preserve validation logs
         if: always()
         uses: actions/upload-artifact@v4

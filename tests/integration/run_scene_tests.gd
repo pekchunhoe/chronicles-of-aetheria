@@ -81,6 +81,26 @@ func _run() -> void:
 	_key(KEY_D, false)
 	t.check(player.position.is_equal_approx(paused_position), "paused player and collision world do not advance")
 	boot.set_paused(false)
+	# Exercise the smaller UI reference used by touch Web browsers, with real nodes.
+	var original_size: Vector2i = root.size
+	var original_scale_size: Vector2i = root.content_scale_size
+	root.size = Vector2i(960, 540)
+	root.content_scale_size = Vector2i(960, 540)
+	await process_frame
+	await process_frame
+	boot.set_paused(true)
+	await process_frame
+	await process_frame
+	var safe_rect: Rect2 = boot.get_node("SafeArea/UI").get_global_rect()
+	t.check(safe_rect.encloses(boot.pause_panel.get_global_rect()), "pause menu fits the smaller landscape touch UI")
+	boot.set_paused(false)
+	boot.touch.configure(1.25, 0.8)
+	await process_frame
+	t.check(safe_rect.encloses(boot.touch.get_node("Actions").get_global_rect()) and safe_rect.encloses(boot.touch.get_node("Stick").get_global_rect()), "maximum-size touch controls remain inside landscape safe UI")
+	boot.touch.configure(1.0, 0.8)
+	root.size = original_size
+	root.content_scale_size = original_scale_size
+	await process_frame
 	await _frames(2)
 	# A valid interaction records a stable discovery and accepted model inputs.
 	boot._run_sample()

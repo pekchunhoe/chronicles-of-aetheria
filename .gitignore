@@ -3,7 +3,6 @@
 artifacts/*
 !artifacts/.gitkeep
 !artifacts/.gdignore
-!artifacts/.gdignore
 builds/
 *.tmp
 *.log
@@ -13,6 +12,8 @@ export_credentials.cfg
 .DS_Store
 Thumbs.db
 __pycache__/
+.vercel/
+node_modules/
 .godot/
 builds/
 .env
@@ -23,3 +24,5 @@ builds/
 *.pfx
 *.apk
 *.aab
+.vercel
+.env*

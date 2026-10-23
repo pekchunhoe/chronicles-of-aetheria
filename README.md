@@ -1,6 +1,8 @@
-# Chronicles of Aetheria — Phase 0
+# Chronicles of Aetheria — Phase 0 and Web export
 
 A small, offline Godot foundation for an original 2D action adventure. It contains one graybox room, a controllable placeholder, an elevated platform, a jumpable pit, a checkpoint, a camera, pause/settings UI, and an idealized physics model bench. Combat, a dungeon, bosses, shops and the seven kingdoms belong to later phases.
+
+Windows, native Android and Web use the same GDScript codebase, with separate export presets. The complete browser release is generated into `web/`. See [the Web/Vercel deployment report](GODOT_WEB_VERCEL_DEPLOYMENT_REPORT.md) for the current production and browser-verification status.
 
 **Engine: Godot 4.7.2 stable, standard GDScript edition.** The world renders into a fixed **640 × 360 SubViewport**. UI renders separately at a scalable 1280 × 720 reference size. Compatibility/OpenGL rendering is selected. There are no third-party art/audio assets or game dependencies.
 
@@ -115,7 +117,7 @@ Install **4.7.2 stable export templates matching the engine** through Editor →
 .\tools\export_windows.ps1 -Graphical
 ```
 
-The local portable editor uses `_sc_` self-contained mode. Its matching Windows debug/release template files are under `.tools/godot-4.7.2/editor_data/export_templates/4.7.2.stable/`. Only Windows templates were provisioned here; use the complete official template package on another machine. The existing `builds/windows/Aetheria.exe` is a local, unsigned debug export. Release export/signing/distribution have not been validated.
+The local portable editor uses `_sc_` self-contained mode. Its matching templates are under `.tools/godot-4.7.2/editor_data/export_templates/4.7.2.stable/`. Windows and single-threaded Web templates are provisioned locally; Android templates are still absent. The existing `builds/windows/Aetheria.exe` is a local, unsigned debug export. Windows release export/signing/distribution have not been validated.
 
 For Android, the [Godot 4.7 Android export guide](https://docs.godotengine.org/en/4.7/tutorials/export/exporting_for_android.html) specifies OpenJDK 17 (recommended), platform-tools ≥35.0.0, build-tools 35.0.1, Android platform 35, current command-line tools, CMake 3.10.2.4988404 and NDK 28.1.13356709. Configure Java SDK Path and Android SDK Path in the editor. This machine has Java 25, no detected Android SDK/adb and no installed Android templates. Java 25 has not been validated for this project.
 
@@ -123,4 +125,57 @@ The Android preset targets a landscape, arm64 APK, with Internet/storage permiss
 
 ## Continue development
 
-Read [the validation report](PHASE_0_VALIDATION_REPORT.md) for actual results and [the Phase 1 handoff](docs/PHASE_1_HANDOFF.md) for the next work. Source copies of the supplied starter prompt and GDD are preserved under `docs/`; their source files in the adjacent folder were unchanged. The repository has been initialized; nothing has been staged, committed, pushed or published.
+Read [the original Phase 0 validation report](PHASE_0_VALIDATION_REPORT.md) for its historical results and [the Phase 1 handoff](docs/PHASE_1_HANDOFF.md) for the next gameplay work. Source copies of the supplied starter prompt and GDD are preserved under `docs/`; their source files in the adjacent folder were unchanged. The existing GitHub repository is `pekchunhoe/chronicles-of-aetheria`, with production branch `main`. Current Web commit/push/deployment status is recorded in the Web deployment report.
+
+## Export and run the Web game
+
+The Web preset uses Godot 4.7.2 **Compatibility / WebGL 2**, single-threaded WebAssembly, no GDExtensions, and an adaptive canvas. Mobile texture imports are enabled for the Web preset's ETC2/ASTC option. Windows and Android retain their presets and renderer. Physics equations and save schema are unchanged.
+
+```powershell
+# Install matching Web templates in this project's portable editor (once):
+python .\tools\install_web_templates.py
+
+# Generate and validate a complete release; no manual asset assembly:
+.\tools\export_web.ps1
+
+# Or pass a separately installed matching engine:
+.\tools\export_web.ps1 -Godot 'C:\path\to\Godot_v4.7.2-stable_win64_console.exe'
+
+# Serve over HTTP, then open http://127.0.0.1:8060/ in a browser:
+python .\tools\serve_web.py
+
+# In another terminal, verify HTTP status, MIME types and hashes:
+node .\tools\verify_web_export.mjs --url http://127.0.0.1:8060/
+
+# Verify incomplete/corrupt/oversized/stale builds are rejected:
+node .\tests\test_web_integrity.mjs
+```
+
+For a separately installed engine, use Editor → Manage Export Templates to install the complete official 4.7.2 package, or pass `--destination` to `install_web_templates.py` with that editor's template directory. The script reads only the official archive's single-threaded Web ZIPs, checks their version and outer/inner ZIP CRCs, and needs Python's standard library. No engine or templates are committed.
+
+The export script builds into a new staging directory, validates it, then updates `web/` and a SHA-256 manifest. An export failure preserves the previous Web build. The validator checks the HTML shell, accompanying JS/worklets, WebAssembly validity, Godot PCK signature, configured sizes, source hash, file hashes and size limits. It rejects individual files ≥90 MiB and total exports ≥180 MiB as project guardrails; review current GitHub/Vercel limits before increasing these thresholds. The current complete export is about 38 MiB, with its largest file below GitHub's 100 MiB regular-file limit. No LFS or npm packages are required.
+
+Keep **every generated file and its original name**: `index.html`, `index.js`, `index.wasm`, `index.pck`, both audio worklet files, the generated splash image, and `build-manifest.json`. The `.gdignore` prevents the export from being imported into the Godot project. Edit `web_shell/index.html`, then re-export; edits to generated `web/index.html` are overwritten next time. Opening the HTML with `file://` is unsupported.
+
+The shell starts the actual Godot game, shows download progress and startup errors, and offers fullscreen from a user gesture where supported. Touch browsers automatically show the existing stick/buttons and use a smaller UI reference for readable controls. Browser safe-area CSS protects against insets; portrait touch screens show a landscape prompt. Page visibility/window blur pauses and saves the game. The Web pause menu's **Save progress** button keeps the game running; native Windows retains **Save and quit**.
+
+Browser saves use Godot `user://` backed by the browser's IndexedDB. They are specific to the browser/profile/origin and separate from native Windows/Android saves. Site storage must be allowed; private browsing, quota restrictions or clearing site data can prevent persistence or remove saves. Allow writes to finish before closing the tab. Test checkpoint/discovery/preferences after a reload on each target browser. Native Android APK verification remains a separate requirement.
+
+## Vercel and future updates
+
+The existing project is **`pek-explains-physics/chronicles-of-aetheria`**, connected to **`pekchunhoe/chronicles-of-aetheria` → `main`**. Its production domain is [chronicles-of-aetheria-five.vercel.app](https://chronicles-of-aetheria-five.vercel.app/). Preserve this project and domain.
+
+`vercel.json` in the repository root selects **Other** (`framework: null`), skips dependency installation, runs `node tools/verify_web_export.mjs` as an integrity check, and serves **`web`** as the output directory. Node is used only to verify the committed artifacts, not to implement the game or build a framework application. Vercel does not need Godot installed. The project Root Directory must stay the repository root (dashboard blank/default), with production branch `main`.
+
+There are no catch-all rewrites: JS/WASM/PCK remain real files, missing assets remain 404, and WASM/PCK have explicit MIME types. Revalidation headers prevent fixed export filenames from retaining stale game data across deployments. Single-threaded Web export avoids a SharedArrayBuffer/COOP/COEP requirement. The existing GitHub integration should create the production deployment after a verified push; do not also launch a duplicate CLI production deployment.
+
+For each gameplay update:
+
+1. Make focused Godot changes. Run `tools/validate.ps1 -Capture` and `tools/export_windows.ps1 -Graphical`.
+2. Run `tools/export_web.ps1`, then the validator and local HTTP server above. A source change without a fresh export deliberately fails the Vercel integrity check.
+3. Test a real desktop browser: startup, movement, the platform/gap, pause, checkpoint/fall recovery, bench results, saving, reload, resizing and browser console/network errors. Test touch emulation and an actual mobile browser separately; neither certifies the native APK.
+4. Review `git status`, `git diff` and staged files. Stage only the requested source/docs/configuration changes and the **complete** `web/` export. Keep `.tools/`, `.godot/`, `.vercel/`, `.env*`, caches, local builds and signing material excluded.
+5. Commit, then push to the existing `origin/main` only after the required local/browser checks pass. Wait for the existing Vercel Git deployment.
+6. Match its Git SHA to the pushed commit, then run `node tools/verify_web_export.mjs --url https://chronicles-of-aetheria-five.vercel.app/`. Also open the production URL and verify actual gameplay and the console; HTTP/asset checks alone do not establish playability.
+
+The GitHub Actions workflow runs the Godot checks and verifies the committed Web export. It does not publish the game or create another Vercel project.

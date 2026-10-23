@@ -5,6 +5,7 @@ const Concepts = preload("res://scripts/curriculum/concept_repository.gd")
 const Puzzle = preload("res://scripts/puzzle_runtime/puzzle_controller.gd")
 const Scanner = preload("res://scripts/player/gauntlet_scanner.gd")
 const TouchScene = preload("res://scenes/ui/touch_overlay.tscn")
+const WebSupport = preload("res://scripts/platform/web_platform_support.gd")
 var saves: SaveRepository
 var concepts := Concepts.new()
 var puzzle := Puzzle.new()
@@ -22,11 +23,15 @@ var menu_status: Label
 var touch_toggle: CheckButton
 var status_message: String = ""
 var save_writable: bool = true
+var pause_panel: PanelContainer
+var pause_scroll: ScrollContainer
 @onready var room: Node2D = $WorldViewport/GrayboxRoom
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if WebSupport.is_touch_device():
+		get_window().content_scale_size = Vector2i(960, 540)
 	# Integration tests override storage, so they cannot touch a player's real save.
 	var save_path: String = str(get_meta("save_path", "user://save_v1.json"))
 	var smoke_mode: bool = "--foundation-smoke" in OS.get_cmdline_user_args() and OS.is_debug_build()
@@ -58,6 +63,9 @@ func _ready() -> void:
 	if not loaded or not puzzle_loaded:
 		status_message = "Content validation failed. Check local content files."
 	_build_ui()
+	var web_support := WebSupport.new()
+	web_support.pause_requested.connect(_on_web_pause)
+	add_child(web_support)
 	Controls.bindings_changed.connect(_refresh_bindings)
 	_refresh_bindings()
 	if status_message.is_empty():
@@ -144,6 +152,11 @@ func set_paused(paused: bool) -> void:
 		pause_layer.get_node("Center/Panel/Scroll/Contents/Resume").grab_focus()
 
 
+func _on_web_pause() -> void:
+	set_paused(true)
+	_persist("Paused and saved in this browser.")
+
+
 func _build_ui() -> void:
 	var ui_theme := Theme.new()
 	ui_theme.default_font_size = 22
@@ -207,6 +220,8 @@ func _build_ui() -> void:
 	ui.add_child(status)
 	_build_pause(ui)
 	ui.resized.connect(_refresh_status)
+	ui.resized.connect(_resize_pause_menu)
+	_resize_pause_menu()
 
 
 func _build_pause(parent: Control) -> void:
@@ -220,10 +235,12 @@ func _build_pause(parent: Control) -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	pause_layer.add_child(center)
 	var panel := PanelContainer.new()
+	pause_panel = panel
 	panel.name = "Panel"
 	panel.custom_minimum_size = Vector2(760, 0)
 	center.add_child(panel)
 	var scroll := ScrollContainer.new()
+	pause_scroll = scroll
 	scroll.name = "Scroll"
 	scroll.custom_minimum_size = Vector2(0, 550)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -251,7 +268,7 @@ func _build_pause(parent: Control) -> void:
 	contents.add_child(touch_toggle)
 	_add_slider(contents, "Touch size", 0.75, 1.25, float(save_data.control_preferences.get("touch_scale", 1.0)), "touch_scale")
 	_add_slider(contents, "Touch opacity", 0.3, 1.0, float(save_data.control_preferences.get("touch_opacity", 0.8)), "touch_opacity")
-	contents.add_child(_button("Save and quit", _save_and_quit))
+	contents.add_child(_button("Save progress" if OS.has_feature("web") else "Save and quit", _save_and_quit))
 	pause_layer.visible = false
 
 
@@ -297,7 +314,7 @@ func _reset_bindings() -> void:
 
 
 func _touch_enabled() -> bool:
-	return OS.has_feature("android") or OS.has_feature("ios") or bool(save_data.control_preferences.get("touch_visible", false))
+	return OS.has_feature("android") or OS.has_feature("ios") or WebSupport.is_touch_device() or bool(save_data.control_preferences.get("touch_visible", false))
 
 
 func _touch_toggled(enabled: bool) -> void:
@@ -362,6 +379,14 @@ func _refresh_status() -> void:
 	status.offset_bottom = -172 if _touch_enabled() else 0
 
 
+func _resize_pause_menu() -> void:
+	if pause_panel == null or pause_scroll == null:
+		return
+	pause_panel.custom_minimum_size.x = minf(760.0, maxf(320.0, get_viewport_rect().size.x - 96.0))
+	pause_scroll.custom_minimum_size.y = minf(550.0, maxf(240.0, get_viewport_rect().size.y - 120.0))
+
+
 func _save_and_quit() -> void:
 	_persist("Progress saved.")
-	get_tree().quit()
+	if not OS.has_feature("web"):
+		get_tree().quit()
