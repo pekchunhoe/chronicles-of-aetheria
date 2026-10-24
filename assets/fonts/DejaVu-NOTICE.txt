@@ -1,0 +1,15 @@
+DejaVu Sans — unmodified font from the locally installed Matplotlib package.
+Source: C:/Program Files/Spyder/pkgs/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf
+Size: 756072 bytes.
+SHA-256: 3fdf69cabf06049ea70a00b5919340e2ce1e6d02b0cc3c4b44fb6801bd1e0d22
+
+The accompanying LICENSE_DEJAVU was copied as DejaVu-LICENSE.txt without
+altering its Bitstream Vera and Arev copyright/permission notices.
+DejaVu changes are public domain, as stated in that license.
+Upstream: https://dejavu-fonts.github.io/
+License reference: https://dejavu-fonts.github.io/License.html
+
+No font download, installation, font modification or glyph subsetting was used.
+This font supplements the existing Aetheria UI font for missing scientific
+characters; Cinzel headings and the original body font remain unchanged.
+Godot's TextServer directly verifies the bundled font's own glyph map.

@@ -4,7 +4,7 @@ extends Node
 ## from Input.action_press, so touch release cannot cancel a physical held key.
 
 signal bindings_changed
-const ACTIONS: Array[String] = ["move_left", "move_right", "jump", "interact", "scan", "pause", "restart", "light_attack", "heavy_attack", "dodge"]
+const ACTIONS: Array[String] = ["move_left", "move_right", "jump", "interact", "scan", "pause", "restart", "light_attack", "heavy_attack", "dodge", "impulse_strike", "codex"]
 var virtual_sources: Dictionary = {}
 var axis_sources: Dictionary = {}
 var pending_presses: Dictionary = {}
@@ -22,12 +22,14 @@ func install_defaults() -> void:
 		"jump": [KEY_SPACE], "interact": [KEY_E], "scan": [KEY_Q],
 		"pause": [KEY_ESCAPE], "restart": [KEY_R],
 		"light_attack": [KEY_J], "heavy_attack": [KEY_K], "dodge": [KEY_SHIFT],
+		"impulse_strike": [KEY_F], "codex": [KEY_TAB],
 	}
 	var buttons: Dictionary = {
 		"move_left": JOY_BUTTON_DPAD_LEFT, "move_right": JOY_BUTTON_DPAD_RIGHT,
 		"jump": JOY_BUTTON_A, "interact": JOY_BUTTON_RIGHT_SHOULDER, "scan": JOY_BUTTON_LEFT_SHOULDER,
 		"pause": JOY_BUTTON_START, "restart": JOY_BUTTON_BACK,
 		"light_attack": JOY_BUTTON_X, "heavy_attack": JOY_BUTTON_Y, "dodge": JOY_BUTTON_B,
+		"impulse_strike": JOY_BUTTON_LEFT_STICK, "codex": JOY_BUTTON_RIGHT_STICK,
 	}
 	for action in ACTIONS:
 		if not InputMap.has_action(action):
@@ -180,3 +182,60 @@ func import_key_bindings(bindings: Dictionary) -> void:
 
 func _virtual_held(action: String) -> bool:
 	return not virtual_sources.get(action, {}).is_empty()
+
+
+func rebind_controller(action: String, button_index: int) -> bool:
+	if action not in ACTIONS or button_index < 0 or button_index >= JOY_BUTTON_MAX:
+		return false
+	for other in ACTIONS:
+		if other == action: continue
+		for event in InputMap.action_get_events(other):
+			if event is InputEventJoypadButton and event.button_index == button_index:
+				return false
+	for event in InputMap.action_get_events(action):
+		if event is InputEventJoypadButton:
+			InputMap.action_erase_event(action, event)
+	var event := InputEventJoypadButton.new()
+	event.device = -1
+	event.button_index = button_index
+	InputMap.action_add_event(action, event)
+	release_virtual()
+	bindings_changed.emit()
+	return true
+
+
+func export_controller_bindings() -> Dictionary:
+	var data: Dictionary = {}
+	for action in ACTIONS:
+		for event in InputMap.action_get_events(action):
+			if event is InputEventJoypadButton:
+				data[action] = event.button_index
+	return data
+
+
+func import_controller_bindings(data: Variant) -> void:
+	if not data is Dictionary: return
+	var defaults: Dictionary = export_controller_bindings()
+	var chosen: Dictionary = {}
+	var used: Array[int] = []
+	for action in ACTIONS:
+		var button: Variant = data.get(action)
+		if (button is int or button is float) and is_finite(float(button)) and int(button) >= 0 and int(button) < JOY_BUTTON_MAX and int(button) not in used:
+			chosen[action] = int(button)
+			used.append(int(button))
+	for action in ACTIONS:
+		if not chosen.has(action):
+			var button: int = defaults[action]
+			if button in used:
+				for candidate in range(JOY_BUTTON_MAX):
+					if candidate not in used:
+						button = candidate
+						break
+			chosen[action] = button
+			used.append(button)
+	for action in ACTIONS:
+		for event in InputMap.action_get_events(action):
+			if event is InputEventJoypadButton:
+				InputMap.action_erase_event(action, event)
+	for action in ACTIONS:
+		rebind_controller(action, chosen[action])

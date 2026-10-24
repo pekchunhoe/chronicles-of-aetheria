@@ -1,10 +1,12 @@
-# Chronicles of Aetheria — The Broken Laws / Phase 2
+# Chronicles of Aetheria — The Broken Laws / Phase 3
 
-A playable, offline 2D action RPG prototype set in **Mechanical Citadel — Combat Training Sector**, now with original AI-assisted pixel artwork, animated characters and machines, layered architecture, bronze and stone terrain, atmospheric lamps and a coordinated HUD. Use the existing three-cut combo, heavy strike and dodge, activate checkpoints, collect the optional Axiom shard and reach the east exit. Bosses, shops and the full seven-kingdom adventure remain outside this phase.
+A playable, offline action RPG with the original **Mechanical Citadel — Combat Training Sector** and the new **Axiom Research Chambers**. Discover Vector Sight, operate physical friction, projectile, momentum and energy machinery, unlock Impulse Strike, and complete a combined sword-and-physics trial. Nine offline Codex entries and optional Scholar challenges use the same SI parameters as the apparatus. The approved Phase 2 artwork, animations, parallax, lighting, HUD and accessibility preferences are preserved. Bosses, shops and the seven-kingdom expansion remain outside this phase.
 
-Windows, Android and Web share one GDScript codebase and separate export presets. The complete browser release is generated into `web/`. See [the Phase 2 visual overhaul report](PHASE_2_VISUAL_OVERHAUL_REPORT.md) for validation, comparison screenshots, performance and limitations. [Phase 1](PHASE_1_IMPLEMENTATION_REPORT.md) and the [Web deployment report](GODOT_WEB_VERCEL_DEPLOYMENT_REPORT.md) are historical records. The user confirmed Phase 1 was accepted and pushed before this work. **Phase 2 remains local and uncommitted; it has not been pushed or deployed.**
+Windows, Android and Web share one GDScript codebase and separate export presets. The complete browser release is generated into `web/`. See [the Phase 3 implementation report](PHASE_3_PHYSICS_GAMEPLAY_REPORT.md) for exact validation, screenshots, performance and limitations. The [Phase 2 report](PHASE_2_VISUAL_OVERHAUL_REPORT.md), [Phase 1 report](PHASE_1_IMPLEMENTATION_REPORT.md) and [Web deployment report](GODOT_WEB_VERCEL_DEPLOYMENT_REPORT.md) are historical records. Phase 2 is committed at `52db0ca`. **Phase 3 remains local and uncommitted. Do not push or deploy it without the user's later authorization.**
 
 **Engine: Godot 4.7.2 stable, standard GDScript edition.** The world renders into a fixed **640 × 360 SubViewport**. UI renders separately at a scalable 1280 × 720 reference size. Compatibility/OpenGL rendering is selected. Original raster masters and exact prompts are preserved locally; the bundled Cinzel heading font is SIL OFL licensed. See [asset provenance](assets/ASSET_PROVENANCE.md). No runtime network dependency is added.
+
+Scientific text uses a bundled DejaVu Sans fallback for Greek letters, operators, SI superscripts and subscripts. It supplements the existing UI font and preserves Cinzel headings. The unmodified font and its full redistribution notices were sourced locally; see [font provenance](assets/fonts/DejaVu-NOTICE.txt). No runtime or build-time font download is required.
 
 Pause and scroll to **Presentation** to choose reduced, standard or enhanced effects, reduced motion and camera shake. Web/mobile default to reduced effects and zero shake. Settings use the existing schema-1 preferences; existing saves, movement, hitboxes, attack timings, AI and numerical physics are retained. The [pre-change inventory](docs/PHASE_2_VISUAL_INVENTORY.md) records those boundaries.
 
@@ -31,20 +33,26 @@ For a fresh checkout, download the [official 4.7.2 standard engine](https://godo
 | Light attack / three-cut combo | J | X / Square |
 | Heavy attack (Breaker) | K | Y / Triangle |
 | Dodge | Shift | B / Circle |
-| Save current progress | E | Right shoulder |
-| Toggle numerical bench | Q | Left shoulder |
+| Interact / tune nearby machine / save | E | Right shoulder |
+| Vector Sight (research) / numerical bench (Citadel) | Q | Left shoulder |
+| Impulse Strike (unlocked in Momentum Vault) | F | Left stick click |
+| Physics Codex | Tab | Right stick click |
 | Pause / resume | Escape | Start |
 | Return to active checkpoint | R | Back / Select |
 
 The opening room is safe. Hold Space to cross its short gap and reach the original east checkpoint, then continue east to the first crawler. Climb the three steps, avoid the turret's locked aim line, and reach the relay beyond it. The relay restores health and saves automatically. The next corridor combines both enemy types; its upper passage contains an optional shard and rejoins the main route. Cross the final gap, defeat the last crawler, and enter the mint-coloured EXIT.
 
+Choose **Chambers** in the HUD for Mira's research expedition, or press Interact at the original east exit. At the Lost Laboratory, press E to install the diagnostic module. Walk to a machine and press E to adjust sliders; Q captures its measured state and shows force arrows. Release or fire, then watch the actual cargo/projectile contact its receiver. Failed experiments cost nothing; use Reset in the instrument or R to return to the checkpoint. F is the gauntlet default because E retains interaction and existing remappings. Lighter vault cargo gains more speed from the same strike. Raise the Energy Engine weight to deliver enough incident kinetic energy. The final trial requires a ramp relay, an elevated projectile relay and a defeated security machine. Return through either research portal or the HUD expedition button. The upper Momentum Vault passage hides an optional second Axiom Shard.
+
+Open Tab / **Codex** for discoveries. Enable **Scholar Mode** in any apparatus panel to study its exact frozen settings. Type a rounded numerical answer in the specified unit; working and constructive feedback appear locally. Archive seals are cosmetic, and every story relay is solvable with Scholar Mode disabled. All menus scroll and have a close button; Escape resumes the instrument safely. The 20–35 minute initial-exploration target awaits human playtesting.
+
 Tap J again during late recovery to chain light attacks. K trades startup time for damage and reach. Dodge travels 92 pixels over 0.18 seconds, with 0.12 seconds of early invulnerability, 0.14 seconds of recovery and a 0.72-second cooldown. Walls stop both dodges and sword hits. Enemies telegraph attacks; there is no unavoidable contact damage.
 
-Kael has 100 health. Hits grant 0.7 seconds of immunity; death disables gameplay for 0.9 seconds, then restores full health at the last checkpoint. Nonlethal falls cost 20 health and return immediately. Returning to a checkpoint resets enemies and removes projectiles. Shards, completion, discoveries and control preferences persist. Saving records the checkpoint, not exact position or transient enemy health. The bench remains a numerical preview; **Run sample** validates the existing SI model and records a discovery.
+Kael has 100 health. Hits grant 0.7 seconds of immunity; death disables gameplay for 0.9 seconds, then restores full health at the last checkpoint. Nonlethal falls cost 20 health and return immediately. Returning to a checkpoint resets enemies, experiments and hostile projectiles. Saving records the checkpoint, current positive player health, shards, ability unlocks, chamber relays, discoveries, archive seals and preferences. Exact positions, transient enemies and unfinished experiment motion reset on loading; completed gates and bridges remain open. The original numerical bench remains available for legacy saves and regression checks.
 
-Pause → select an action → press a new key to remap the keyboard. Duplicate keys are rejected. Defaults can be restored from the same menu. Controller mappings are configured in `InputAdapter.install_defaults()`; a controller-remapping UI is deferred.
+Pause → select an action → press a new key or controller button. Duplicate bindings are rejected. Defaults can be restored from the same menu. Legacy saved keys take priority over newly introduced defaults; conflicting new actions receive an unused key. Keyboard and controller button mappings persist separately. Real controller hardware remains unverified.
 
-On Android and touch browsers, touch controls appear automatically. On desktop, enable **Show touch controls on desktop** in the pause menu. The left stick supports simultaneous jumping and attacking with other fingers; right-side buttons offer light, heavy, jump, dodge, save, scan and pause. Size and opacity are configurable and saved. The overlay uses real `InputEventScreenTouch`/`ScreenDrag` events, so ordinary desktop mouse clicks do not simulate a finger. Position customization is deferred.
+On Android and touch browsers, controls appear automatically. On desktop, enable **Show touch controls on desktop** in the pause menu. Finger-owned controls support simultaneous movement, jumps and attacks, with dedicated **SIGHT**, **IMPULSE**, **CODEX** and **USE** buttons. Size and opacity are configurable and saved. Standard menus/sliders accept touch through mouse emulation; gameplay buttons retain independent finger ownership. Instruments hide the gameplay overlay while the world is paused. Position customization is deferred.
 
 **Android compatibility has not been certified.** The touch scene has been rendered on Windows and exercised with synthetic finger events. No APK or actual Android device run was produced in this environment.
 
@@ -77,7 +85,7 @@ $engine = '.\.tools\godot-4.7.2\Godot_v4.7.2-stable_win64_console.exe'
 
 ## Numerical contract
 
-`PhysicsModel` is scene-independent GDScript. It accepts dictionaries of finite, named quantities in SI units, returns values with units and assumptions, and rejects unsupported input/model IDs. Gravitational acceleration is fixed at **9.81 m/s²**. Angles use explicitly named degree fields; friction coefficients are dimensionless.
+The original `PhysicsModel` retains its four scene-independent numerical contracts. `MechanicsModel` adds static/kinetic friction with signed stopping/reversal, analytic projectile states and unequal-height quadratic roots, vector impulse/momentum, and energy with explicitly modelled thermal transfer. Default gravity is **9.81 m s⁻²**; the launcher permits 8–12 m s⁻² as an experimental field setting. Angles use degrees in controls and radians internally; friction coefficients are dimensionless.
 
 | Model | Inputs and assumptions | Expected result | Fixture absolute tolerance |
 | --- | --- | --- | --- |
@@ -86,11 +94,11 @@ $engine = '.\.tools\godot-4.7.2\Godot_v4.7.2-stable_win64_console.exe'
 | `ideal_fall_v1` | 2 m drop from rest; negligible losses | 6.2641839053 m/s | 0.005 m/s about 6.26 m/s |
 | `ohms_law_v1` | 12 V, 6 Ω; steady DC, ideal source, ohmic equivalent load | 2 A | 1e-12 A |
 
-Additional tests use independently calculated, unrounded references, check energy conservation, reject NaN/infinity/invalid domains, and verify the SI/world conversion. The ramp model does not determine whether static friction prevents release; negative acceleration describes a body already sliding down and slowing.
+Additional tests use independent references, check energy and work, signed impulses, static thresholds, upward motion and stopping, unreachable elevations, invalid domains, and SI/world conversion. The legacy `sliding_ramp_v1` is still an already-sliding preview; the new apparatus uses the complete static/kinetic state model. A 10 N s impulse gives Δv = 5 m s⁻¹ at 2 kg and 2 m s⁻¹ at 5 kg. Later guide friction is a separate external impulse.
 
 Puzzle acceptance tolerance is content-specific: `projectile_bench.json` accepts a range within **20.0 ± 0.10 m**. It is separate from numerical test precision. The scanner displays evaluated values and declared assumptions. The bench is a preview, without a world launcher apparatus in Phase 0.
 
-For future quantitative apparatus, **64 world pixels = 1 m**; thus 20 m must span 1280 world pixels. The small graybox pit is arcade traversal. Player speed/gravity/jump settings are deliberately in pixels and are not graded SI measurements.
+All quantitative apparatus uses **64 world pixels = 1 m**; a 20 m launcher receiver is 1280 world pixels away. `ExperimentState` uses exact motion at the fixed 60 Hz physics clock; swept payload collisions determine contact. Trajectory predictions are cached when inputs change. Player traversal and enemy knockback remain arcade rules in pixels, with no calibrated SI claim. See the Phase 3 report for collision geometry, numerical tolerances and idealizations.
 
 ## Modules and content
 
@@ -114,7 +122,7 @@ For future quantitative apparatus, **64 world pixels = 1 m**; thus 20 m must spa
 
 **Semester 1** and **Semester 2** are fixed display identities. `SP015` and `SP025` are replaceable codes in a versioned mapping, not save identities. Topics are dynamic arrays, including an empty Semester 2 example. `foundation_example_v1` is illustrative and explicitly awaits an authoritative syllabus audit; it does not claim current curriculum alignment.
 
-Saves retain `save_schema_version: 1`; new snapshots use `content_version: phase1.0`. Phase 0 saves load unchanged, including `room_start` and `east_checkpoint`. The new relay is `citadel_checkpoint`; optional reward and completion use existing `collected_crystals` and `unlocks` arrays. Old custom bindings take priority over new action defaults, with a free fallback key assigned to a conflicting default. Normal saves use Godot's `user://save_v1.json`; the last valid previous save is `.bak`. A same-directory `.tmp` file is flushed and renamed for replacement. Corrupt data can recover from backup; unsupported newer schemas are preserved and cannot be overwritten. Explicit migration is still required if schema 2 is ever introduced. Atomic rename does not guarantee protection from every OS/filesystem power failure.
+Saves retain `save_schema_version: 1`; new snapshots use `content_version: phase3.0`. Phase 0–2 data loads with safe defaults for research. Legacy checkpoint, collectible and discovery IDs remain unchanged. Research uses `research_a` through `research_f` checkpoints and `citadel.research.*` progression IDs; the nine journal IDs start with `mechanics.`. Missing research state means an untouched expedition. Unfinished experiments reset safely, and completed relays reopen the correct colliders. Old custom bindings keep priority. Normal saves use Godot's unchanged `user://save_v1.json`; the last valid previous save is `.bak`. Same-directory temporary replacement, corruption recovery and unsupported-newer-schema protection remain. Atomic rename does not guarantee protection from every OS/filesystem power failure.
 
 Background/focus loss pauses the scene and saves locally. Resume remains paused until the player chooses to continue. Native Android lifecycle and storage behavior still need device testing.
 
@@ -138,11 +146,13 @@ The Android preset targets a landscape, arm64 APK, with Internet/storage permiss
 
 ## Continue development
 
-Read [the Phase 2 report](PHASE_2_VISUAL_OVERHAUL_REPORT.md) for current results and remaining validation. Earlier reports and the [original handoff](docs/PHASE_1_HANDOFF.md) remain historical records. Source copies of the starter prompt and GDD are preserved under `docs/`. The existing GitHub repository remains `pekchunhoe/chronicles-of-aetheria`, with production branch `main`. Phase 3 may introduce reviewed SI apparatus and Vector Sight through the existing independent physics interfaces, after real mobile and controller validation. No Phase 3 mechanics were added here.
+Read [the Phase 3 report](PHASE_3_PHYSICS_GAMEPLAY_REPORT.md) for current results, numerical assumptions, screenshots and remaining validation. Earlier reports and the [original handoff](docs/PHASE_1_HANDOFF.md) remain historical records. The GitHub repository remains `pekchunhoe/chronicles-of-aetheria`, with branch `main`. Phase 4 should prioritize first-time playtesting, independent physics review, real mobile/controller testing, Android prerequisites and broader encounter/visual polish.
 
 ## Export and run the Web game
 
 The Web preset uses Godot 4.7.2 **Compatibility / WebGL 2**, single-threaded WebAssembly, no GDExtensions, and an adaptive canvas. Mobile texture imports are enabled for the Web preset's ETC2/ASTC option. Windows and Android retain their presets and renderer. Physics equations and save schema are unchanged.
+
+The HTML shell owns canvas sizing with export resize policy 0. It fits an exact 16:9 canvas inside the area below the 44 px header and safe-area padding, with letterboxing on wider screens. A resize observer updates the drawing buffer and Godot's input transform. Drawing-buffer scaling stays uniform, with device-pixel ratio capped at 2; the 640 × 360 world retains nearest filtering. The fullscreen button remains available in fullscreen. Landscape touch emulation, resizing, fullscreen entry/exit, symbols and reload persistence have automated browser evidence; physical mobile hardware still needs testing.
 
 ```powershell
 # Install matching Web templates in this project's portable editor (once):
@@ -166,7 +176,7 @@ node .\tests\test_web_integrity.mjs
 
 For a separately installed engine, use Editor → Manage Export Templates to install the complete official 4.7.2 package, or pass `--destination` to `install_web_templates.py` with that editor's template directory. The script reads only the official archive's single-threaded Web ZIPs, checks their version and outer/inner ZIP CRCs, and needs Python's standard library. No engine or templates are committed.
 
-The export script builds into a new staging directory, validates it, then updates `web/` and a SHA-256 manifest. An export failure preserves the previous Web build. The validator checks the HTML shell, accompanying JS/worklets, WebAssembly validity, Godot PCK signature, configured sizes, source hash, file hashes and size limits. It rejects individual files ≥90 MiB and total exports ≥180 MiB as project guardrails; review current GitHub/Vercel limits before increasing these thresholds. The current complete export is about 43.93 MiB, with its largest file below GitHub's 100 MiB regular-file limit. No LFS or npm packages are required.
+The export script builds into a new staging directory, validates it, then updates `web/` and a SHA-256 manifest. An export failure preserves the previous Web build. The validator checks the HTML shell, accompanying JS/worklets, WebAssembly validity, Godot PCK signature, configured sizes, source hash, file hashes and size limits. It rejects individual files ≥90 MiB and total exports ≥180 MiB as project guardrails; review current hosting limits before increasing these thresholds. `web/build-manifest.json` records the exact fresh byte counts and hashes. No LFS or npm packages are required.
 
 Keep **every generated file and its original name**: `index.html`, `index.js`, `index.wasm`, `index.pck`, both audio worklet files, the generated splash image, and `build-manifest.json`. The `.gdignore` prevents the export from being imported into the Godot project. Edit `web_shell/index.html`, then re-export; edits to generated `web/index.html` are overwritten next time. Opening the HTML with `file://` is unsupported.
 
@@ -188,7 +198,7 @@ For each gameplay update:
 2. Run `tools/export_web.ps1`, then the validator and local HTTP server above. A source change without a fresh export deliberately fails the Vercel integrity check.
 3. Test a real desktop browser: movement/jumps, light combo/heavy/dodge, crawler/turret fights, damage/death/relay respawn, upper-passage shard, exit, pause, bench, save/reload, resize and console/network errors. Test simultaneous touch actions and an actual mobile browser separately; neither certifies the native APK.
 4. Review `git status`, `git diff` and staged files. Stage only the requested source/docs/configuration changes and the **complete** `web/` export. Keep `.tools/`, `.godot/`, `.vercel/`, `.env*`, caches, local builds and signing material excluded.
-5. **Obtain explicit user authorization before committing, pushing or deploying Phase 2.** After approval, use the existing `origin/main` and its existing Vercel Git deployment.
+5. **Obtain explicit user authorization before committing, pushing or deploying Phase 3.** After approval, use the existing `origin/main` and its existing Vercel Git deployment.
 6. Match its Git SHA to the pushed commit, then run `node tools/verify_web_export.mjs --url https://chronicles-of-aetheria-five.vercel.app/`. Also open the production URL and verify actual gameplay and the console; HTTP/asset checks alone do not establish playability.
 
 The GitHub Actions workflow runs the Godot checks and verifies the committed Web export. It does not publish the game or create another Vercel project.

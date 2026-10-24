@@ -15,6 +15,7 @@ func _run() -> void:
 	PhysicsTests.new().run(t)
 	RepositoryTests.new().run(t)
 	ActionTests.new().run(t)
+	preload("res://tests/unit/test_mechanics.gd").new().run(t)
 	var insets: Vector4 = SafeArea.calculate_insets(Rect2(0, 0, 1280, 720), Rect2(48, 20, 1200, 680))
 	t.check(insets == Vector4(48, 20, 32, 20), "safe area accounts for asymmetric landscape insets")
 	t.check(SafeArea.calculate_insets(Rect2(0, 0, 640, 360), Rect2()) == Vector4.ZERO, "invalid safe area falls back without hiding controls")

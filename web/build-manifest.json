@@ -3,8 +3,8 @@
   "engine": "4.7.2-stable",
   "renderer": "gl_compatibility",
   "threads": false,
-  "contentSourceSha256": "ad4dbf3d43b587a9bcf1563953d778962c417448a5beaa433e64c337c551c442",
-  "totalBytes": 46064899,
+  "contentSourceSha256": "2f8ac2126d5f169c874c69a3f17c15d8f69f5e48ddb8ae30b9a6c2619da0c454",
+  "totalBytes": 46581112,
   "files": {
     "index.audio.position.worklet.js": {
       "bytes": 2973,
@@ -15,16 +15,16 @@
       "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
     },
     "index.html": {
-      "bytes": 6084,
-      "sha256": "0f41ee0b1faf17c6af891dcc8ccab132c91e5af4bebd111c1cf6c941d2a2236b"
+      "bytes": 7397,
+      "sha256": "de3f62af9c81be0b9ab27c139e51c544007f889daec5b57435e34dcd9a24d526"
     },
     "index.js": {
       "bytes": 279815,
       "sha256": "33c94cb3175f3333b82e2a3be5e8e86f77986f0aa2042b1631f6367a4e5bb6ba"
     },
     "index.pck": {
-      "bytes": 6232532,
-      "sha256": "67f10d6e148e0f90212b4c307f3f4084e801b2d2d24d0da4b36eef0712da5582"
+      "bytes": 6747432,
+      "sha256": "261e0fbae8854256a570fb56444d67bb0ffd4ee76fcf7ad3a8380e0841354741"
     },
     "index.png": {
       "bytes": 21443,

@@ -48,6 +48,10 @@ func _run() -> void:
 	for suffix in ["", ".bak", ".tmp"]:
 		if FileAccess.file_exists(save_path + suffix):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(save_path + suffix))
+	# --fixed-fps advances timers faster than the real audio mixer in headless runs.
+	# Give that independent thread actual wall time to release stopped playbacks.
+	OS.delay_msec(120)
+	await process_frame
 	quit(t.summary())
 
 
@@ -440,7 +444,7 @@ func _touch_and_remapping() -> void:
 		for key in all[action]:
 			unique = unique and not keys.has(key)
 			keys[key] = true
-	t.check(unique and all.size() == 10, "all ten remappable actions remain reachable without duplicate keys")
+	t.check(unique and all.size() == controls.ACTIONS.size(), "all remappable actions remain reachable without duplicate keys")
 	boot._persist("Migrated control test")
 	boot.set_paused(true)
 	var joy := InputEventJoypadButton.new()

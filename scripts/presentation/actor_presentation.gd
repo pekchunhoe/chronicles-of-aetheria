@@ -80,6 +80,8 @@ func _update_hero(delta: float) -> void:
 	sprite.modulate.a = 0.65 + 0.35 * absf(sin(actor.health.immunity_left * 30)) if actor.health.immunity_left > 0 and not Visuals.reduced_motion else 1.0
 	if actor.health.current <= 0:
 		_play("death", 1.0 - actor.death_left / actor.death_seconds)
+	elif is_instance_valid(actor.impulse) and actor.impulse.activation_left > 0:
+		_play("light_1", clampf(1.0 - actor.impulse.activation_left / 0.26, 0, 0.99))
 	elif actor.combat.attack != null:
 		var name: String = "heavy" if actor.combat.combo_index < 0 else "light_" + str(actor.combat.combo_index + 1)
 		var move: AttackData = actor.combat.attack

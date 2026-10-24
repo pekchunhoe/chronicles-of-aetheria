@@ -40,7 +40,7 @@ func _release() -> void:
 func _draw() -> void:
 	var rect := Rect2(Vector2.ZERO, size)
 	draw_style_box(_style(), rect)
-	var icons: Dictionary = {"light_attack": 50, "heavy_attack": 51, "dodge": 52, "jump": 48, "scan": 54, "interact": 53, "pause": 55}
+	var icons: Dictionary = {"light_attack": 50, "heavy_attack": 51, "dodge": 52, "jump": 48, "scan": 54, "interact": 53, "pause": 55, "impulse_strike": 63, "codex": 23}
 	var extent: float = minf(size.x, size.y) * 0.38
 	draw_texture_rect(ArtLibrary.texture("world", icons.get(action, 48)), Rect2((size.x - extent) * 0.5, size.y * 0.12, extent, extent), false)
 	var font: Font = ThemeDB.fallback_font

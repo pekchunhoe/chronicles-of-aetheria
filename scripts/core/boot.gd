@@ -32,6 +32,7 @@ var feedback_label: Label
 var hud_left: float = 0.0
 var completion_notice_left: float = 0.0
 var validation_mode: bool = false
+var research_ui: ResearchInterface
 @onready var room: Node2D = $WorldViewport/GrayboxRoom
 
 
@@ -59,6 +60,11 @@ func _ready() -> void:
 	room.set_checkpoint(save_data.checkpoint_id)
 	room.restore_progress(save_data)
 	room.respawn()
+	var player_state: Variant = save_data.get("player_state", {})
+	if player_state is Dictionary:
+		var saved_health: Variant = player_state.get("health", room.player.health.maximum)
+		if (saved_health is int or saved_health is float) and is_finite(float(saved_health)) and saved_health > 0:
+			room.player.health.current = clampi(int(saved_health), 1, room.player.health.maximum)
 	room.checkpoint_reached.connect(_checkpoint_reached)
 	room.progression_changed.connect(_persist)
 	room.sector_completed.connect(_sector_completed)
@@ -67,6 +73,7 @@ func _ready() -> void:
 	var bindings: Variant = preferences.get("bindings", {})
 	if bindings is Dictionary:
 		Controls.import_key_bindings(bindings)
+	Controls.import_controller_bindings(preferences.get("controller_bindings", {}))
 	var loaded: bool = concepts.load_content()
 	var puzzle_loaded: bool = puzzle.load_definition("res://content/puzzles/projectile_bench.json")
 	if puzzle_loaded:
@@ -76,6 +83,14 @@ func _ready() -> void:
 	if not loaded or not puzzle_loaded:
 		status_message = "Content validation failed. Check local content files."
 	_build_ui()
+	research_ui = ResearchInterface.new()
+	research_ui.host = self
+	$SafeArea/UI.add_child(research_ui)
+	room.player.impulse.unlocked = room.research.progress.impulse_unlocked
+	room.player.impulse.feedback.connect(func(message: String):
+		status_message = message
+		_refresh_status()
+	)
 	room.player.health.changed.connect(_health_changed)
 	_health_changed(room.player.health.current, room.player.health.maximum)
 	var web_support := WebSupport.new()
@@ -84,7 +99,7 @@ func _ready() -> void:
 	Controls.bindings_changed.connect(_refresh_bindings)
 	_refresh_bindings()
 	if status_message.is_empty():
-		status_message = "Reach the relay, explore the upper passage, then find the east exit."
+		status_message = "Explore the Citadel, or choose Chambers for Mira's new expedition. At the east exit, Interact enters the research wing."
 	_refresh_status()
 	# The game subtree remains pausable even though UI/lifecycle code always runs.
 	$WorldViewport.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -104,6 +119,8 @@ func _run_standalone_smoke() -> void:
 		valid = puzzle.solved and saves.load_save().discoveries.size() == 1
 	if valid:
 		valid = await load("res://scripts/core/packaged_smoke.gd").new().run(self)
+	if valid:
+		valid = await load("res://scripts/core/research_smoke.gd").new().run(self)
 	print("EXPORT SMOKE PASS: standalone pack, JSON content, scene, collision, SI puzzle, and isolated save" if valid else "FAIL: packaged foundation validation")
 	for suffix in ["", ".bak", ".tmp"]:
 		if FileAccess.file_exists(saves.path + suffix):
@@ -113,8 +130,15 @@ func _run_standalone_smoke() -> void:
 
 func _process(delta: float) -> void:
 	if Controls.consume_press("pause"):
-		set_paused(not get_tree().paused)
+		if research_ui != null and not research_ui.mode.is_empty():
+			research_ui.close()
+		else:
+			set_paused(not get_tree().paused)
+	if Controls.consume_press("codex"):
+		research_ui.toggle_codex()
 	if get_tree().paused:
+		if Controls.consume_press("scan") and research_ui.mode == "sight":
+			research_ui.close()
 		return
 	hud_left -= delta
 	completion_notice_left = maxf(0.0, completion_notice_left - delta)
@@ -124,12 +148,26 @@ func _process(delta: float) -> void:
 	if Controls.consume_press("restart") and room.player.health.current > 0:
 		room.respawn()
 	if Controls.consume_press("interact"):
-		_persist("Progress saved at " + str(save_data.checkpoint_id).replace("_", " ") + ".")
+		if not research_ui.interact():
+			_persist("Progress saved at " + str(save_data.checkpoint_id).replace("_", " ") + ".")
 	if Controls.consume_press("scan"):
-		_toggle_bench()
+		if room.research.active:
+			research_ui.toggle_sight()
+		else:
+			_toggle_bench()
 
 
 func _input(event: InputEvent) -> void:
+	if not remap_action.is_empty() and event is InputEventJoypadButton and event.pressed:
+		if Controls.rebind_controller(remap_action, event.button_index):
+			_persist("Controller binding saved.")
+			menu_status.text = "Controller binding saved."
+		else:
+			menu_status.text = "That controller button is already assigned. Choose another."
+		remap_action = ""
+		Controls.release_virtual()
+		get_viewport().set_input_as_handled()
+		return
 	if remap_action.is_empty() or not event is InputEventKey or not event.pressed or event.echo:
 		return
 	var selected: String = remap_action
@@ -157,6 +195,8 @@ func _notification(what: int) -> void:
 	if validation_mode and what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
 		return
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		if research_ui != null and not research_ui.mode.is_empty():
+			research_ui.close()
 		set_paused(true)
 		_persist("Paused and saved locally.")
 	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -208,6 +248,13 @@ func _build_ui() -> void:
 	title.add_theme_color_override("font_color", Color("9fdfc3"))
 	header.add_child(title)
 	header.add_child(_button("Model bench", _toggle_bench))
+	header.add_child(_button("Chambers", func():
+		if room.research.active:
+			room.leave_research()
+		else:
+			room.enter_research()
+	))
+	header.add_child(_button("Codex", func(): research_ui.toggle_codex()))
 	header.add_child(_button("Pause", func(): set_paused(true)))
 	var vitals := HBoxContainer.new()
 	vitals.add_theme_constant_override("separation", 14)
@@ -314,6 +361,13 @@ func _build_pause(parent: Control) -> void:
 		room.respawn()
 		set_paused(false)
 	))
+	contents.add_child(_button("Return to Citadel / Enter research expedition", func():
+		set_paused(false)
+		if room.research.active:
+			room.leave_research()
+		else:
+			room.enter_research()
+	))
 	menu_status = Label.new()
 	menu_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	contents.add_child(menu_status)
@@ -395,7 +449,7 @@ func _button(caption: String, callback: Callable) -> Button:
 
 func _request_remap(action: String) -> void:
 	remap_action = action
-	menu_status.text = "Press a new key for " + action + "."
+	menu_status.text = "Press a new key or controller button for " + action + "."
 	Controls.release_virtual()
 
 
@@ -453,6 +507,8 @@ func _snapshot() -> Dictionary:
 	save_data.content_version = Saves.CONTENT_VERSION
 	room.snapshot_progress(save_data)
 	save_data.control_preferences["bindings"] = Controls.export_key_bindings()
+	save_data.control_preferences["controller_bindings"] = Controls.export_controller_bindings()
+	save_data["player_state"] = {"health": room.player.health.current if room.player.health.current > 0 else room.player.health.maximum}
 	Visuals.snapshot(save_data.control_preferences)
 	return save_data
 
@@ -496,8 +552,11 @@ func _refresh_status() -> void:
 	if status == null:
 		return
 	status.text = status_message
-	status.offset_top = -210 if _touch_enabled() else -38
-	status.offset_bottom = -172 if _touch_enabled() else 0
+	# The added gauntlet row occupies the old mobile notification position.
+	# Research's compact contextual panel carries those notifications instead.
+	status.visible = not (_touch_enabled() and room.research.active)
+	status.offset_top = -330 if _touch_enabled() else -38
+	status.offset_bottom = -292 if _touch_enabled() else 0
 
 
 func _resize_pause_menu() -> void:

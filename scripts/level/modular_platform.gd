@@ -8,6 +8,7 @@ func _ready() -> void:
 	collision_layer = 1
 	collision_mask = 0
 	var collider := CollisionShape2D.new()
+	collider.name = "CollisionShape2D"
 	var rectangle := RectangleShape2D.new()
 	rectangle.size = dimensions
 	collider.shape = rectangle

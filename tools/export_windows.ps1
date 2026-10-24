@@ -31,7 +31,7 @@ try {
         '--', '--foundation-smoke'
     ) -WindowStyle Hidden -PassThru -Wait
     $smokeText = Get-Content -LiteralPath $smokeLog -Raw
-    if ($smoke.ExitCode -ne 0 -or $smokeText -notmatch 'EXPORT SMOKE PASS:' -or $smokeText -notmatch 'PACKAGED ACTION PASS:' -or $smokeText -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
+    if ($smoke.ExitCode -ne 0 -or $smokeText -notmatch 'EXPORT SMOKE PASS:' -or $smokeText -notmatch 'PACKAGED ACTION PASS:' -or $smokeText -notmatch 'PACKAGED RESEARCH PASS: packaged research save reload' -or $smokeText -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
         throw "Exported application smoke test failed; read $smokeLog"
     }
 } finally {
@@ -45,7 +45,7 @@ if ($Graphical) {
             '--quit-after', '1800', '--log-file', ('"' + $graphicsLog + '"'), '--', '--foundation-smoke', '--capture'
         ) -WindowStyle Hidden -PassThru -Wait
         $graphicsText = Get-Content -LiteralPath $graphicsLog -Raw
-        if ($graphics.ExitCode -ne 0 -or $graphicsText -notmatch 'PACKAGED ACTION PASS:' -or $graphicsText -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
+        if ($graphics.ExitCode -ne 0 -or $graphicsText -notmatch 'PACKAGED ACTION PASS:' -or $graphicsText -notmatch 'PACKAGED RESEARCH PASS: packaged research save reload' -or $graphicsText -match '(?m)^(SCRIPT ERROR:|ERROR:|FAIL:)') {
             throw "Exported graphical action checks failed; read $graphicsLog"
         }
     } finally {

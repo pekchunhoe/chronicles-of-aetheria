@@ -31,6 +31,7 @@ var death_left: float = 0.0
 var fall_reported: bool = false
 var jumped_since_landing: bool = false
 var movement_state: String = "idle"
+var impulse: ImpulseStrike
 @onready var health: HealthComponent = $Health
 @onready var combat: CombatController = $Combat
 @onready var dodge: DodgeController = $Dodge
@@ -41,6 +42,9 @@ func _ready() -> void:
 	health.damaged.connect(_on_damaged)
 	health.died.connect(_on_died)
 	floor_snap_length = 5.0
+	impulse = ImpulseStrike.new()
+	impulse.name = "ImpulseStrike"
+	add_child(impulse)
 
 
 func _physics_process(delta: float) -> void:
@@ -52,6 +56,7 @@ func _physics_process(delta: float) -> void:
 		queue_redraw()
 		return
 	combat.advance(delta)
+	impulse.advance(delta)
 	dodge.advance(delta)
 	hurt_left = maxf(0.0, hurt_left - delta)
 	coyote_left = coyote_seconds if is_on_floor() and not jumped_since_landing else maxf(0.0, coyote_left - delta)
@@ -64,7 +69,9 @@ func _physics_process(delta: float) -> void:
 	var dodge_pressed: bool = Controls.consume_press("dodge")
 	var light_pressed: bool = Controls.consume_press("light_attack")
 	var heavy_pressed: bool = Controls.consume_press("heavy_attack")
-	if hurt_left <= 0.0:
+	if Controls.consume_press("impulse_strike"):
+		impulse.begin()
+	if hurt_left <= 0.0 and impulse.activation_left <= 0:
 		if dodge_pressed and combat.phase() in ["idle", "recovery"] and dodge.begin(facing):
 			combat.cancel()
 			buffer_left = 0.0
@@ -80,6 +87,8 @@ func _physics_process(delta: float) -> void:
 		velocity.x = axis * run_speed_px_per_s * 0.3
 	elif hurt_left <= 0.0:
 		var multiplier: float = combat.attack.movement_multiplier if combat.attack != null else 1.0
+		if impulse.activation_left > 0:
+			multiplier = 0.25
 		var rate: float = acceleration if is_on_floor() else air_acceleration
 		if is_zero_approx(axis):
 			rate = deceleration if is_on_floor() else air_acceleration
@@ -148,6 +157,8 @@ func reset_to(point: Vector2) -> void:
 	jumped_since_landing = false
 	combat.cancel()
 	dodge.reset()
+	if is_instance_valid(impulse):
+		impulse.reset()
 	health.restore()
 	_set_state("idle")
 	reset_physics_interpolation()

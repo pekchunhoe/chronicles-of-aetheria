@@ -1,6 +1,19 @@
 class_name GameTheme
 extends RefCounted
 ## Restrained iron, brass and jade; UI text stays at full display resolution.
+const SCIENTIFIC_FALLBACK: FontFile = preload("res://assets/fonts/DejaVuSans.ttf")
+static var _body_font: Font
+
+
+static func body_font() -> Font:
+	if _body_font == null:
+		var wrapped := FontVariation.new()
+		wrapped.base_font = ThemeDB.fallback_font
+		wrapped.fallbacks = [SCIENTIFIC_FALLBACK]
+		_body_font = wrapped
+	return _body_font
+
+
 static func panel(color: Color = Color("101c25"), border: Color = Color("80704e")) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
@@ -16,6 +29,8 @@ static func panel(color: Color = Color("101c25"), border: Color = Color("80704e"
 
 static func create() -> Theme:
 	var result := Theme.new()
+	result.default_font = body_font()
+	result.set_font("normal_font", "RichTextLabel", body_font())
 	result.default_font_size = 20
 	result.set_color("font_color", "Label", Color("e4dfcd"))
 	result.set_color("font_shadow_color", "Label", Color("080e15"))

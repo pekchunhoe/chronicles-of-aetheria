@@ -4,7 +4,7 @@ extends RefCounted
 ## Unsupported future versions are preserved, never silently replaced.
 
 const SCHEMA_VERSION: int = 1
-const CONTENT_VERSION: String = "phase1.0"
+const CONTENT_VERSION: String = "phase3.0"
 const MAX_SAVE_BYTES: int = 1048576
 var path: String
 var last_error: String = ""
@@ -19,6 +19,7 @@ func defaults() -> Dictionary:
 	return {"save_schema_version": SCHEMA_VERSION, "content_version": CONTENT_VERSION,
 		"checkpoint_id": "room_start", "unlocks": [], "collected_crystals": [], "equipment": {},
 		"puzzle_state": {}, "discoveries": [], "mode_choices": {"learning": "Adventure"},
+		"player_state": {"health": 100},
 		"control_preferences": {"bindings": {}, "touch_visible": false, "touch_scale": 1.0, "touch_opacity": 0.8}}
 
 

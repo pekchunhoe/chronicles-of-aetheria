@@ -26,6 +26,7 @@ var relay: ProgressionMarker
 var relic: ProgressionMarker
 var exit_marker: ProgressionMarker
 var legacy_checkpoint_visual: MarkerPresentation
+var research: ResearchChambers
 @onready var player: FoundationPlayer = $Player
 
 
@@ -39,11 +40,26 @@ func _ready() -> void:
 	legacy_checkpoint_visual = MarkerPresentation.new()
 	$Checkpoint.add_child(legacy_checkpoint_visual)
 	add_child(CitadelPresentation.new())
+	research = preload("res://scenes/regions/axiom_research_chambers.tscn").instantiate()
+	research.position.x = 3520
+	add_child(research)
+	research.checkpoint.connect(func(identity: String):
+		set_checkpoint(identity)
+		player.health.heal(player.health.maximum)
+		checkpoint_reached.emit(identity)
+	)
+	research.changed.connect(func(message: String): progression_changed.emit(message))
 	respawn()
 
 
 func set_checkpoint(identity: String) -> void:
-	checkpoint_id = identity if SPAWNS.has(identity) else "room_start"
+	checkpoint_id = identity if SPAWNS.has(identity) or (is_instance_valid(research) and research.CHECKPOINTS.has(identity)) else "room_start"
+	var in_research: bool = checkpoint_id.begins_with("research_")
+	if is_instance_valid(research):
+		research.set_active(in_research)
+	player.world_right = research.position.x + ResearchChambers.WIDTH - 10 if in_research else WIDTH - 10
+	player.get_node("Camera2D").limit_left = int(research.position.x) if in_research else 0
+	player.get_node("Camera2D").limit_right = int(player.world_right + 10)
 	if is_instance_valid(legacy_checkpoint_visual):
 		legacy_checkpoint_visual.active = checkpoint_id == "east_checkpoint"
 	if is_instance_valid(relay):
@@ -53,7 +69,12 @@ func set_checkpoint(identity: String) -> void:
 
 func respawn(restore_health: bool = true) -> void:
 	var remaining_health: int = player.health.current
-	player.reset_to(SPAWNS[checkpoint_id])
+	var spawn: Vector2 = SPAWNS.get(checkpoint_id, Vector2(128, 302))
+	if checkpoint_id.begins_with("research_"):
+		spawn = research.position + research.CHECKPOINTS[checkpoint_id]
+	player.reset_to(spawn)
+	if is_instance_valid(research):
+		research.reset_experiments()
 	if not restore_health:
 		player.health.current = remaining_health
 		player.health.changed.emit(remaining_health, player.health.maximum)
@@ -80,6 +101,7 @@ func restore_progress(data: Dictionary) -> void:
 	completed = COMPLETION_ID in data.get("unlocks", [])
 	relic.set_active(relic_collected)
 	exit_marker.set_active(completed)
+	research.restore(data)
 
 
 func snapshot_progress(data: Dictionary) -> void:
@@ -87,6 +109,21 @@ func snapshot_progress(data: Dictionary) -> void:
 		data.collected_crystals.append(RELIC_ID)
 	if completed and COMPLETION_ID not in data.unlocks:
 		data.unlocks.append(COMPLETION_ID)
+	research.progress.snapshot(data)
+
+
+func enter_research() -> void:
+	set_checkpoint("research_a")
+	respawn()
+	checkpoint_reached.emit(checkpoint_id)
+	progression_changed.emit(research.notice)
+
+
+func leave_research() -> void:
+	set_checkpoint("citadel_checkpoint")
+	respawn()
+	checkpoint_reached.emit(checkpoint_id)
+	progression_changed.emit("Returned to the Mechanical Citadel. Research discoveries remain saved.")
 
 
 func _build_sector() -> void:

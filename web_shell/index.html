@@ -4,19 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0e1927">
-  <meta name="description" content="Explore the Mechanical Citadel combat training sector in Chronicles of Aetheria.">
+  <meta name="description" content="Explore the Mechanical Citadel and its physics-powered Axiom Research Chambers.">
   <title>Chronicles of Aetheria — The Broken Laws</title>
   <style>
     :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0e1927; color: #edf3ed; }
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
     body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
-    header { flex: 0 0 42px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 12px; background: #132437; }
+    header { flex: 0 0 44px; height: 44px; min-height: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 12px; background: #132437; }
     header span { font-size: 14px; color: #9fdfc3; }
     button { font: inherit; color: #edf3ed; background: #20394c; border: 1px solid #7cb9c4; border-radius: 6px; padding: 7px 14px; cursor: pointer; }
     button:focus-visible { outline: 3px solid #9fdfc3; outline-offset: 2px; }
-    main { flex: 1 1 auto; min-height: 0; position: relative; }
-    canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+    header button { font-size: 14px; padding: 6px 14px; }
+    main { flex: 1 1 0; min-height: 0; min-width: 0; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #080f18; }
+    canvas { display: block; flex: none; max-width: 100%; max-height: 100%; outline: none; touch-action: none; image-rendering: pixelated; }
     .overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; background: #0e1927; z-index: 2; }
     .card { width: min(100%, 540px); text-align: center; line-height: 1.5; }
     h1 { font-size: clamp(22px, 4vw, 30px); color: #9fdfc3; }
@@ -59,6 +60,25 @@
     const retry = document.getElementById('retry');
     const fullscreen = document.getElementById('fullscreen');
     const config = $GODOT_CONFIG;
+    // Policy 0 lets this shell own the drawing-buffer size. The main element
+    // already excludes the header and safe-area padding; preserve a 16:9 canvas.
+    // Godot observes attribute changes and updates its viewport/input transform.
+    function sizeCanvas() {
+      const area = canvas.parentElement.getBoundingClientRect();
+      const blocks = Math.max(1, Math.floor(Math.min(area.width / 16, area.height / 9)));
+      const width = 16 * blocks;
+      const height = 9 * blocks;
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      const bufferWidth = Math.round(width * ratio);
+      const bufferHeight = Math.round(height * ratio);
+      if (canvas.width !== bufferWidth) canvas.width = bufferWidth;
+      if (canvas.height !== bufferHeight) canvas.height = bufferHeight;
+    }
+    sizeCanvas();
+    new ResizeObserver(sizeCanvas).observe(canvas.parentElement);
+    window.addEventListener('resize', sizeCanvas);
     function fail(error) {
       loading.hidden = false;
       message.textContent = 'The game could not start';
@@ -81,6 +101,7 @@
     });
     document.addEventListener('fullscreenchange', () => {
       fullscreen.textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen';
+      requestAnimationFrame(sizeCanvas);
     });
     (async () => {
       try {
