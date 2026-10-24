@@ -5,6 +5,7 @@ extends CharacterBody2D
 signal fell
 signal respawn_requested
 signal movement_state_changed(state: String)
+signal presentation_reset
 @export var run_speed_px_per_s: float = 180.0
 @export var jump_speed_px_per_s: float = 360.0
 @export var gravity_px_per_s2: float = 1000.0
@@ -151,6 +152,7 @@ func reset_to(point: Vector2) -> void:
 	_set_state("idle")
 	reset_physics_interpolation()
 	$Camera2D.reset_smoothing()
+	presentation_reset.emit()
 	queue_redraw()
 
 
@@ -173,24 +175,3 @@ func _set_state(next: String) -> void:
 	if next != movement_state:
 		movement_state = next
 		movement_state_changed.emit(next)
-
-
-func _draw() -> void:
-	if movement_state == "dead":
-		draw_rect(Rect2(-14, 7, 28, 7), Color("82908f"))
-		return
-	var tint: Color = Color("c4a679")
-	if hurt_left > 0.0:
-		tint = Color("fff2e5")
-	elif health != null and health.immunity_left > 0.0:
-		tint.a = 0.5 + 0.5 * absf(sin(health.immunity_left * 35.0))
-	if dodge != null and dodge.active():
-		for index in range(1, 4):
-			draw_rect(Rect2(-9 - dodge.direction * index * 10, -10, 18, 24), Color(0.4, 0.9, 0.9, 0.28 / index))
-	draw_rect(Rect2(-9, -14, 18, 28), tint)
-	draw_rect(Rect2(-7, -12, 14, 8), Color("edf3ed"))
-	draw_rect(Rect2(2 * facing, -10, 3, 3), Color("1b2d40"))
-	draw_rect(Rect2(-10, 0, 20, 4), Color("427b87"))
-	draw_rect(Rect2(7 * facing - 2, -2, 4, 5), Color("8cddc2"))
-	if combat != null and combat.attack == null:
-		draw_line(Vector2(10 * facing, 1), Vector2(21 * facing, 13), Color("b8ced4"), 2)

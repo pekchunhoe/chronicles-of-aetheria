@@ -69,23 +69,3 @@ func floor_ahead() -> bool:
 	var point: Vector2 = global_position + Vector2(facing * 22.0, 0)
 	var ray := PhysicsRayQueryParameters2D.create(point, point + Vector2(0, 30), 1)
 	return not get_world_2d().direct_space_state.intersect_ray(ray).is_empty()
-
-
-func _draw() -> void:
-	var tint: Color = Color("c77c58")
-	if state == State.DEAD:
-		draw_rect(Rect2(-14, 5, 28, 7), Color("645052"))
-		return
-	if state == State.HURT:
-		tint = Color("fff3c7")
-	for x in [-11, 0, 11]:
-		draw_line(Vector2(x, 3), Vector2(x - 4 * facing, 12), Color("a9b6c1"), 3)
-	draw_rect(Rect2(-15, -10, 30, 17), tint)
-	draw_rect(Rect2(-10, -14, 18, 6), Color("6f554e"))
-	draw_circle(Vector2(10 * facing, -4), 3, Color("fff2b4"))
-	if state == State.ALERT:
-		draw_string(ThemeDB.fallback_font, Vector2(-3, -24), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, Color("ffd381"))
-	if state == State.ATTACK:
-		var progress: float = minf(1.0, state_time / profile.telegraph_seconds)
-		draw_arc(Vector2(facing * 18, 0), 8 + progress * 13, -1.5, 1.5, 12, Color("ff956b"), 2)
-	_draw_health(32)

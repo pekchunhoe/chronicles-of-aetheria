@@ -1,10 +1,12 @@
-# Chronicles of Aetheria — The Broken Laws / Phase 1
+# Chronicles of Aetheria — The Broken Laws / Phase 2
 
-A playable, offline 2D action RPG prototype set in **Mechanical Citadel — Combat Training Sector**. Explore a connected graybox dungeon, use a three-cut light combo or a heavy sword strike, dodge telegraphed attacks, fight Mechanical Crawlers and Defensive Turrets, activate checkpoints, collect an optional Axiom shard, and reach the east exit. All shapes and synthesized sound effects are original placeholders. Bosses, shops and the full seven-kingdom adventure remain outside this phase.
+A playable, offline 2D action RPG prototype set in **Mechanical Citadel — Combat Training Sector**, now with original AI-assisted pixel artwork, animated characters and machines, layered architecture, bronze and stone terrain, atmospheric lamps and a coordinated HUD. Use the existing three-cut combo, heavy strike and dodge, activate checkpoints, collect the optional Axiom shard and reach the east exit. Bosses, shops and the full seven-kingdom adventure remain outside this phase.
 
-Windows, Android and Web share one GDScript codebase and separate export presets. The complete browser release is generated into `web/`. See [the Phase 1 implementation report](PHASE_1_IMPLEMENTATION_REPORT.md) for actual current validation, artifacts, limitations and the exact file list. [The Web/Vercel deployment report](GODOT_WEB_VERCEL_DEPLOYMENT_REPORT.md) records the historical Phase 0 production release. **Phase 1 has not been pushed or deployed.**
+Windows, Android and Web share one GDScript codebase and separate export presets. The complete browser release is generated into `web/`. See [the Phase 2 visual overhaul report](PHASE_2_VISUAL_OVERHAUL_REPORT.md) for validation, comparison screenshots, performance and limitations. [Phase 1](PHASE_1_IMPLEMENTATION_REPORT.md) and the [Web deployment report](GODOT_WEB_VERCEL_DEPLOYMENT_REPORT.md) are historical records. The user confirmed Phase 1 was accepted and pushed before this work. **Phase 2 remains local and uncommitted; it has not been pushed or deployed.**
 
-**Engine: Godot 4.7.2 stable, standard GDScript edition.** The world renders into a fixed **640 × 360 SubViewport**. UI renders separately at a scalable 1280 × 720 reference size. Compatibility/OpenGL rendering is selected. There are no third-party art/audio assets or game dependencies.
+**Engine: Godot 4.7.2 stable, standard GDScript edition.** The world renders into a fixed **640 × 360 SubViewport**. UI renders separately at a scalable 1280 × 720 reference size. Compatibility/OpenGL rendering is selected. Original raster masters and exact prompts are preserved locally; the bundled Cinzel heading font is SIL OFL licensed. See [asset provenance](assets/ASSET_PROVENANCE.md). No runtime network dependency is added.
+
+Pause and scroll to **Presentation** to choose reduced, standard or enhanced effects, reduced motion and camera shake. Web/mobile default to reduced effects and zero shake. Settings use the existing schema-1 preferences; existing saves, movement, hitboxes, attack timings, AI and numerical physics are retained. The [pre-change inventory](docs/PHASE_2_VISUAL_INVENTORY.md) records those boundaries.
 
 ## Play
 
@@ -100,6 +102,7 @@ For future quantitative apparatus, **64 world pixels = 1 m**; thus 20 m must spa
 | `scripts/combat/`, `content/combat/` | Reusable health, weapon timelines, directional hit queries, tunable attack/enemy resources, effects and original audio |
 | `scripts/enemies/`, `scenes/enemies/` | Shared enemy life/LOS/reset, crawler AI, turret AI and swept projectiles |
 | `scripts/level/` | Reusable collidable platform and checkpoint/relic/exit marker components |
+| `scripts/presentation/`, `assets/` | Cached raster atlases, animation observers, pixel camera, parallax, lighting, UI theme and visual preferences |
 | `scripts/platform/`, `scenes/ui/touch_overlay.tscn` | Keyboard/controller/touch adapter, finger ownership and safe-area layout |
 | `scripts/core/save_repository.gd` | Versioned offline JSON, temp-file replacement, backup/recovery |
 | `scripts/physics_models/physics_model.gd` | Four independent SI models and world conversion |
@@ -135,7 +138,7 @@ The Android preset targets a landscape, arm64 APK, with Internet/storage permiss
 
 ## Continue development
 
-Read [the Phase 1 implementation report](PHASE_1_IMPLEMENTATION_REPORT.md) for current results and remaining validation. [The Phase 0 report](PHASE_0_VALIDATION_REPORT.md) and [original handoff](docs/PHASE_1_HANDOFF.md) remain historical records. Source copies of the starter prompt and GDD are preserved under `docs/`. The existing GitHub repository remains `pekchunhoe/chronicles-of-aetheria`, with production branch `main`. Before Phase 2, finish real browser/mobile/controller playtests, then introduce reviewed SI apparatus and Vector Sight through the existing independent physics interfaces.
+Read [the Phase 2 report](PHASE_2_VISUAL_OVERHAUL_REPORT.md) for current results and remaining validation. Earlier reports and the [original handoff](docs/PHASE_1_HANDOFF.md) remain historical records. Source copies of the starter prompt and GDD are preserved under `docs/`. The existing GitHub repository remains `pekchunhoe/chronicles-of-aetheria`, with production branch `main`. Phase 3 may introduce reviewed SI apparatus and Vector Sight through the existing independent physics interfaces, after real mobile and controller validation. No Phase 3 mechanics were added here.
 
 ## Export and run the Web game
 
@@ -163,7 +166,7 @@ node .\tests\test_web_integrity.mjs
 
 For a separately installed engine, use Editor → Manage Export Templates to install the complete official 4.7.2 package, or pass `--destination` to `install_web_templates.py` with that editor's template directory. The script reads only the official archive's single-threaded Web ZIPs, checks their version and outer/inner ZIP CRCs, and needs Python's standard library. No engine or templates are committed.
 
-The export script builds into a new staging directory, validates it, then updates `web/` and a SHA-256 manifest. An export failure preserves the previous Web build. The validator checks the HTML shell, accompanying JS/worklets, WebAssembly validity, Godot PCK signature, configured sizes, source hash, file hashes and size limits. It rejects individual files ≥90 MiB and total exports ≥180 MiB as project guardrails; review current GitHub/Vercel limits before increasing these thresholds. The current complete export is about 38 MiB, with its largest file below GitHub's 100 MiB regular-file limit. No LFS or npm packages are required.
+The export script builds into a new staging directory, validates it, then updates `web/` and a SHA-256 manifest. An export failure preserves the previous Web build. The validator checks the HTML shell, accompanying JS/worklets, WebAssembly validity, Godot PCK signature, configured sizes, source hash, file hashes and size limits. It rejects individual files ≥90 MiB and total exports ≥180 MiB as project guardrails; review current GitHub/Vercel limits before increasing these thresholds. The current complete export is about 43.93 MiB, with its largest file below GitHub's 100 MiB regular-file limit. No LFS or npm packages are required.
 
 Keep **every generated file and its original name**: `index.html`, `index.js`, `index.wasm`, `index.pck`, both audio worklet files, the generated splash image, and `build-manifest.json`. The `.gdignore` prevents the export from being imported into the Godot project. Edit `web_shell/index.html`, then re-export; edits to generated `web/index.html` are overwritten next time. Opening the HTML with `file://` is unsupported.
 
@@ -185,7 +188,7 @@ For each gameplay update:
 2. Run `tools/export_web.ps1`, then the validator and local HTTP server above. A source change without a fresh export deliberately fails the Vercel integrity check.
 3. Test a real desktop browser: movement/jumps, light combo/heavy/dodge, crawler/turret fights, damage/death/relay respawn, upper-passage shard, exit, pause, bench, save/reload, resize and console/network errors. Test simultaneous touch actions and an actual mobile browser separately; neither certifies the native APK.
 4. Review `git status`, `git diff` and staged files. Stage only the requested source/docs/configuration changes and the **complete** `web/` export. Keep `.tools/`, `.godot/`, `.vercel/`, `.env*`, caches, local builds and signing material excluded.
-5. Commit locally after checks pass. **Obtain explicit user authorization before pushing or deploying.** Only then push to the existing `origin/main` and wait for its existing Vercel Git deployment.
+5. **Obtain explicit user authorization before committing, pushing or deploying Phase 2.** After approval, use the existing `origin/main` and its existing Vercel Git deployment.
 6. Match its Git SHA to the pushed commit, then run `node tools/verify_web_export.mjs --url https://chronicles-of-aetheria-five.vercel.app/`. Also open the production URL and verify actual gameplay and the console; HTTP/asset checks alone do not establish playability.
 
 The GitHub Actions workflow runs the Godot checks and verifies the committed Web export. It does not publish the game or create another Vercel project.

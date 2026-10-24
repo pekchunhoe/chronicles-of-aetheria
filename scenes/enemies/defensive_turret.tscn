@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 [ext_resource type="Script" path="res://scripts/enemies/defensive_turret.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/combat/health_component.gd" id="2"]
 [ext_resource type="Resource" path="res://content/combat/turret.tres" id="3"]
 [ext_resource type="Script" path="res://scripts/combat/combat_audio.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/presentation/actor_presentation.gd" id="5"]
 [sub_resource type="RectangleShape2D" id="Shape"]
 size = Vector2(34, 28)
 [node name="DefensiveTurret" type="CharacterBody2D"]
@@ -17,3 +18,7 @@ script = ExtResource("2")
 damage_immunity_seconds = 0.08
 [node name="Audio" type="AudioStreamPlayer" parent="."]
 script = ExtResource("4")
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("5")
+role = "turret"

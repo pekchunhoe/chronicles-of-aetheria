@@ -44,6 +44,13 @@ func _release() -> void:
 
 func _draw() -> void:
 	var center: Vector2 = size * 0.5
-	draw_circle(center, size.x * 0.48, Color("182c40"))
-	draw_arc(center, size.x * 0.48, 0, TAU, 48, Color("7cb9c4"), 2)
-	draw_circle(center + Vector2(displacement * size.x * 0.30, 0), size.x * 0.20, Color("7cb9c4"))
+	draw_circle(center, size.x * 0.48, Color("101c25"))
+	draw_arc(center, size.x * 0.48, 0, TAU, 48, Color("a68d5d"), 2)
+	draw_arc(center, size.x * 0.42, 0, TAU, 48, Color("485d5b"), 1)
+	for direction in [Vector2.LEFT, Vector2.RIGHT]:
+		var point: Vector2 = center + direction * size.x * 0.34
+		draw_line(point + Vector2(-direction.x * 7, -6), point, Color("b3a17a"), 2)
+		draw_line(point + Vector2(-direction.x * 7, 6), point, Color("b3a17a"), 2)
+	var thumb: Vector2 = center + Vector2(displacement * size.x * 0.30, 0)
+	draw_circle(thumb, size.x * 0.19, Color("436f65"))
+	draw_arc(thumb, size.x * 0.19, 0, TAU, 32, Color("a0d9bf"), 2)

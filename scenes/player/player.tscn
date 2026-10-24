@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/combat/health_component.gd" id="2"]
@@ -10,6 +10,8 @@
 [ext_resource type="Resource" path="res://content/combat/heavy.tres" id="8"]
 [ext_resource type="Script" path="res://scripts/combat/combat_audio.gd" id="9"]
 [ext_resource type="Script" path="res://scripts/combat/attack_data.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/presentation/actor_presentation.gd" id="11"]
+[ext_resource type="Script" path="res://scripts/presentation/pixel_camera.gd" id="12"]
 [sub_resource type="RectangleShape2D" id="Shape"]
 size = Vector2(18, 28)
 
@@ -39,9 +41,13 @@ script = ExtResource("9")
 shape = SubResource("Shape")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("12")
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
 limit_left = 0
 limit_top = 0
 limit_right = 1152
 limit_bottom = 360
+
+[node name="Visual" type="Node2D" parent="."]
+script = ExtResource("11")

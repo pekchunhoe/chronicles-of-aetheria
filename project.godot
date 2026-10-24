@@ -10,6 +10,7 @@ config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 Controls="*res://scripts/platform/input_adapter.gd"
+Visuals="*res://scripts/presentation/visual_settings.gd"
 
 [display]
 window/size/viewport_width=1280

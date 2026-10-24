@@ -63,6 +63,7 @@ func _ready() -> void:
 	room.progression_changed.connect(_persist)
 	room.sector_completed.connect(_sector_completed)
 	var preferences: Dictionary = save_data.control_preferences
+	Visuals.configure(preferences)
 	var bindings: Variant = preferences.get("bindings", {})
 	if bindings is Dictionary:
 		Controls.import_key_bindings(bindings)
@@ -182,25 +183,7 @@ func _on_web_pause() -> void:
 
 
 func _build_ui() -> void:
-	var ui_theme := Theme.new()
-	ui_theme.default_font_size = 22
-	for type_name in ["PanelContainer", "Button", "CheckButton"]:
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color("132437")
-		style.border_color = Color("456579")
-		style.set_border_width_all(1)
-		style.set_corner_radius_all(8)
-		style.content_margin_left = 16
-		style.content_margin_right = 16
-		style.content_margin_top = 10
-		style.content_margin_bottom = 10
-		ui_theme.set_stylebox("panel" if type_name == "PanelContainer" else "normal", type_name, style)
-		if type_name == "Button":
-			var focus: StyleBoxFlat = style.duplicate()
-			focus.border_color = Color("9fdfc3")
-			focus.set_border_width_all(3)
-			ui_theme.set_stylebox("focus", "Button", focus)
-	theme = ui_theme
+	theme = GameTheme.create()
 	var ui := Control.new()
 	ui.name = "UI"
 	ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -211,43 +194,53 @@ func _build_ui() -> void:
 	var preferences: Dictionary = save_data.control_preferences
 	touch.configure(float(preferences.get("touch_scale", 1.0)), float(preferences.get("touch_opacity", 0.8)))
 	touch.visible = _touch_enabled()
+	var hud := PanelContainer.new()
+	hud.name = "CitadelHUD"
+	hud.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	ui.add_child(hud)
 	var top := VBoxContainer.new()
-	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	ui.add_child(top)
+	top.add_theme_constant_override("separation", 5)
+	hud.add_child(top)
 	var header := HBoxContainer.new()
 	top.add_child(header)
-	var title := Label.new()
-	title.text = "AETHERIA  /  TRAINING SECTOR"
+	var title := GameTheme.title("THE MECHANICAL CITADEL", 23)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_color_override("font_color", Color("9fdfc3"))
 	header.add_child(title)
-	header.add_child(_button("Bench", _toggle_bench))
-	header.add_child(_button("Pause / Controls", func(): set_paused(true)))
+	header.add_child(_button("Model bench", _toggle_bench))
+	header.add_child(_button("Pause", func(): set_paused(true)))
 	var vitals := HBoxContainer.new()
 	vitals.add_theme_constant_override("separation", 14)
 	top.add_child(vitals)
 	health_label = Label.new()
 	health_label.add_theme_font_size_override("font_size", 18)
-	health_label.custom_minimum_size.x = 124
+	health_label.custom_minimum_size.x = 136
+	vitals.add_child(GameTheme.icon(49, 24))
 	vitals.add_child(health_label)
 	health_bar = ProgressBar.new()
 	health_bar.custom_minimum_size = Vector2(170, 18)
 	health_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	health_bar.show_percentage = false
 	var health_fill := StyleBoxFlat.new()
-	health_fill.bg_color = Color("8ed8b6")
-	health_fill.set_corner_radius_all(5)
+	health_fill.bg_color = Color("76bda5")
+	health_fill.set_corner_radius_all(1)
 	health_bar.add_theme_stylebox_override("fill", health_fill)
 	var health_background := StyleBoxFlat.new()
-	health_background.bg_color = Color("253b49")
-	health_background.set_corner_radius_all(5)
+	health_background.bg_color = Color("253731")
+	health_background.set_corner_radius_all(1)
 	health_bar.add_theme_stylebox_override("background", health_background)
 	vitals.add_child(health_bar)
+	for index in [50, 51, 52, 53]:
+		vitals.add_child(GameTheme.icon(index, 25))
 	combat_label = Label.new()
-	combat_label.add_theme_font_size_override("font_size", 18)
+	combat_label.add_theme_font_size_override("font_size", 16)
+	combat_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	combat_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	combat_label.custom_minimum_size.x = 120
 	vitals.add_child(combat_label)
 	help_text = Label.new()
-	help_text.add_theme_font_size_override("font_size", 18)
+	help_text.add_theme_font_size_override("font_size", 14)
+	help_text.add_theme_color_override("font_color", Color("a1b3b0"))
 	help_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	top.add_child(help_text)
 	bench = PanelContainer.new()
@@ -264,7 +257,8 @@ func _build_ui() -> void:
 	status.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	status.offset_top = -38
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status.add_theme_font_size_override("font_size", 18)
+	status.add_theme_font_size_override("font_size", 16)
+	status.add_theme_stylebox_override("normal", GameTheme.panel(Color(0.04, 0.07, 0.09, 0.88), Color("4f655e")))
 	ui.add_child(status)
 	var center_feedback := CenterContainer.new()
 	center_feedback.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -272,7 +266,8 @@ func _build_ui() -> void:
 	ui.add_child(center_feedback)
 	feedback_label = Label.new()
 	feedback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	feedback_label.add_theme_font_size_override("font_size", 28)
+	feedback_label.add_theme_font_override("font", ArtLibrary.TITLE_FONT)
+	feedback_label.add_theme_font_size_override("font_size", 26)
 	feedback_label.add_theme_color_override("font_color", Color("d6f7e8"))
 	feedback_label.add_theme_color_override("font_shadow_color", Color("101c2b"))
 	feedback_label.add_theme_constant_override("shadow_offset_x", 2)
@@ -287,7 +282,7 @@ func _build_ui() -> void:
 func _build_pause(parent: Control) -> void:
 	pause_layer = ColorRect.new()
 	pause_layer.name = "PauseLayer"
-	pause_layer.color = Color(0.02, 0.04, 0.07, 0.96)
+	pause_layer.color = Color(0.02, 0.04, 0.06, 0.90)
 	pause_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	parent.add_child(pause_layer)
 	var center := CenterContainer.new()
@@ -310,6 +305,8 @@ func _build_pause(parent: Control) -> void:
 	contents.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	contents.add_theme_constant_override("separation", 8)
 	scroll.add_child(contents)
+	contents.add_child(GameTheme.title("CHRONICLES OF AETHERIA", 28))
+	contents.add_child(GameTheme.title("The Broken Laws  /  Rest at the Citadel", 16))
 	var resume := _button("Resume", func(): set_paused(false))
 	resume.name = "Resume"
 	contents.add_child(resume)
@@ -320,11 +317,39 @@ func _build_pause(parent: Control) -> void:
 	menu_status = Label.new()
 	menu_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	contents.add_child(menu_status)
+	contents.add_child(GameTheme.title("Controls", 18))
+	var binding_grid := GridContainer.new()
+	binding_grid.columns = 2
+	contents.add_child(binding_grid)
 	for action in Controls.ACTIONS:
 		var button := _button("", _request_remap.bind(action))
-		contents.add_child(button)
+		button.add_theme_font_size_override("font_size", 16)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		binding_grid.add_child(button)
 		remap_buttons[action] = button
 	contents.add_child(_button("Reset keyboard / controller defaults", _reset_bindings))
+	contents.add_child(GameTheme.title("Presentation", 18))
+	var quality := OptionButton.new()
+	quality.name = "EffectsQuality"
+	for caption in ["Effects: reduced", "Effects: standard", "Effects: enhanced"]:
+		quality.add_item(caption)
+	quality.selected = Visuals.quality
+	quality.item_selected.connect(func(index: int):
+		Visuals.quality = index
+		_persist("Effects quality saved.")
+	)
+	contents.add_child(quality)
+	var motion := CheckButton.new()
+	motion.name = "ReducedMotion"
+	motion.text = "Reduced motion / no camera shake"
+	motion.button_pressed = Visuals.reduced_motion
+	motion.toggled.connect(func(enabled: bool):
+		Visuals.reduced_motion = enabled
+		_persist("Motion preference saved.")
+	)
+	contents.add_child(motion)
+	_add_slider(contents, "Camera shake", 0.0, 1.0, Visuals.shake_strength, "camera_shake")
+	contents.add_child(GameTheme.title("Touch controls", 18))
 	touch_toggle = CheckButton.new()
 	touch_toggle.text = "Show touch controls on desktop"
 	touch_toggle.button_pressed = bool(save_data.control_preferences.get("touch_visible", false))
@@ -352,8 +377,10 @@ func _add_slider(parent: VBoxContainer, caption: String, low: float, high: float
 	slider.custom_minimum_size.y = 42
 	slider.value_changed.connect(func(value: float):
 		save_data.control_preferences[key] = value
+		if key == "camera_shake":
+			Visuals.shake_strength = value
 		touch.configure(float(save_data.control_preferences.get("touch_scale", 1.0)), float(save_data.control_preferences.get("touch_opacity", 0.8)))
-		_persist("Touch settings saved.")
+		_persist("Presentation settings saved.")
 	)
 	row.add_child(slider)
 
@@ -426,6 +453,7 @@ func _snapshot() -> Dictionary:
 	save_data.content_version = Saves.CONTENT_VERSION
 	room.snapshot_progress(save_data)
 	save_data.control_preferences["bindings"] = Controls.export_key_bindings()
+	Visuals.snapshot(save_data.control_preferences)
 	return save_data
 
 

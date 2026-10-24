@@ -51,22 +51,3 @@ func reset_enemy() -> void:
 	super.reset_enemy()
 	aim_direction = Vector2.LEFT
 	shots_fired = 0
-
-
-func _draw() -> void:
-	if state == State.DEAD:
-		draw_rect(Rect2(-17, 5, 34, 9), Color("645052"))
-		return
-	var tint: Color = Color("c7a565") if state != State.HURT else Color("fff3c7")
-	draw_rect(Rect2(-17, 4, 34, 10), Color("64747d"))
-	draw_rect(Rect2(-10, -14, 20, 22), tint)
-	draw_circle(Vector2(0, -8), 8, Color("485766"))
-	draw_line(Vector2(0, -8), Vector2(0, -8) + aim_direction * 22, tint, 6)
-	if state == State.ATTACK:
-		var progress: float = minf(1.0, state_time / profile.telegraph_seconds)
-		var color := Color(1.0, 0.65, 0.35, 0.25 + progress * 0.55)
-		for index in range(14):
-			var begin: Vector2 = Vector2(0, -8) + aim_direction * (24 + index * 17)
-			draw_line(begin, begin + aim_direction * 9, color, 1)
-		draw_circle(Vector2(0, -8) + aim_direction * 23, 3 + progress * 3, Color("ffe4a4"))
-	_draw_health(36)

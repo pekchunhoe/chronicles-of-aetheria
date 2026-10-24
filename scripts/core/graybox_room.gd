@@ -25,6 +25,7 @@ var enemies: Array[EnemyBase] = []
 var relay: ProgressionMarker
 var relic: ProgressionMarker
 var exit_marker: ProgressionMarker
+var legacy_checkpoint_visual: MarkerPresentation
 @onready var player: FoundationPlayer = $Player
 
 
@@ -35,11 +36,16 @@ func _ready() -> void:
 	player.respawn_requested.connect(respawn)
 	$Checkpoint.body_entered.connect(_on_checkpoint_body_entered)
 	_build_sector()
+	legacy_checkpoint_visual = MarkerPresentation.new()
+	$Checkpoint.add_child(legacy_checkpoint_visual)
+	add_child(CitadelPresentation.new())
 	respawn()
 
 
 func set_checkpoint(identity: String) -> void:
 	checkpoint_id = identity if SPAWNS.has(identity) else "room_start"
+	if is_instance_valid(legacy_checkpoint_visual):
+		legacy_checkpoint_visual.active = checkpoint_id == "east_checkpoint"
 	if is_instance_valid(relay):
 		relay.set_active(checkpoint_id == "citadel_checkpoint")
 	queue_redraw()
@@ -143,36 +149,3 @@ func _on_checkpoint_body_entered(body: Node2D) -> void:
 		player.health.heal(player.health.maximum)
 		player.audio.cue("relay")
 		checkpoint_reached.emit(checkpoint_id)
-
-
-func _draw() -> void:
-	draw_rect(Rect2(0, 0, WIDTH, 480), Color("0e1927"))
-	for x in range(0, int(WIDTH) + 1, 32):
-		draw_line(Vector2(x, 0), Vector2(x, 360), Color("152332"))
-	for y in range(0, 361, 32):
-		draw_line(Vector2(0, y), Vector2(WIDTH, y), Color("152332"))
-	for x in range(32, int(WIDTH), 160):
-		draw_rect(Rect2(x, 140, 20, 180), Color("1b2c3b"))
-	for rect in [Rect2(0, 320, 448, 64), Rect2(528, 320, 624, 64), Rect2(240, 264, 112, 16)]:
-		draw_rect(rect, Color("465461"))
-		draw_rect(Rect2(rect.position, Vector2(rect.size.x, 3)), Color("849398"))
-	draw_rect(Rect2(448, 356, 80, 4), Color("c58d70"))
-	draw_line(Vector2(760, 320), Vector2(760, 266), Color("82c7bb"), 3)
-	draw_rect(Rect2(762, 268, 30, 18), Color("82c7bb") if checkpoint_id == "east_checkpoint" else Color("486a72"))
-	var font: Font = ThemeDB.fallback_font
-	draw_string(font, Vector2(50, 270), "START", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("a4b4bf"))
-	draw_string(font, Vector2(242, 244), "PLATFORM", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("a4b4bf"))
-	draw_string(font, Vector2(424, 296), "JUMP", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("d2ac8a"))
-	draw_string(font, Vector2(718, 250), "CHECKPOINT", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("82c7bb"))
-	for sign_data in [
-		[Vector2(65, 208), "MECHANICAL CITADEL", Color("a6d8cc")],
-		[Vector2(65, 229), "Combat Training Sector  /  Exit east >", Color("a4b4bf")],
-		[Vector2(886, 242), "CRAWLER  /  Watch the windup", Color("e2ac87")],
-		[Vector2(1204, 144), "ASCEND >", Color("a6d8cc")],
-		[Vector2(1700, 182), "TURRET  /  Dodge the aim line", Color("e2ac87")],
-		[Vector2(2160, 110), "OPTIONAL UPPER PASSAGE", Color("cfb7ec")],
-		[Vector2(2656, 230), "FINAL APPROACH >", Color("a6d8cc")],
-	]:
-		draw_string(font, sign_data[0], sign_data[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, sign_data[2])
-	for x in [448, 2448]:
-		draw_line(Vector2(x, 360), Vector2(x + 80, 360), Color("dc9b76"), 3)

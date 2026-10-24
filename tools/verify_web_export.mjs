@@ -32,7 +32,7 @@ async function sourceHash() {
   const hash = createHash('sha256');
   for (const filename of files.sort()) {
     let bytes = await readFile(filename);
-    if (/\.(gd|uid|tscn|tres|json|html|godot|cfg|svg|txt)$/i.test(filename)) {
+    if (/\.(gd|gdshader|uid|tscn|tres|json|html|godot|cfg|svg|txt)$/i.test(filename)) {
       bytes = Buffer.from(bytes.toString('utf8').replace(/\r\n/g, '\n'));
     }
     hash.update(path.relative(root, filename).replaceAll('\\', '/') + '\0');

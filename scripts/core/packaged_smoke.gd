@@ -9,6 +9,14 @@ func run(application: Control) -> bool:
 	controls = boot.get_node("/root/Controls")
 	var room: Node2D = boot.room
 	var player: CharacterBody2D = room.player
+	var visual: Node2D = player.get_node("Visual")
+	var layout: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://assets/source/atlas_layout.json"))
+	var art_valid: bool = layout is Dictionary and layout.atlases.size() == 3
+	art_valid = art_valid and visual.sprite.sprite_frames.get_frame_count("heavy") == 4 and visual.sprite.sprite_frames.get_frame_texture("idle", 0).atlas != null
+	art_valid = art_valid and ArtLibrary.TITLE_FONT.get_data().size() > 0
+	if not _check(art_valid, "packaged raster atlases, animation frames, measured metadata and licensed font"):
+		return false
+	print("PACKAGED VISUAL PASS: raster atlases, animation frames, metadata, font")
 	for enemy in room.enemies:
 		enemy.ai_enabled = false
 		enemy.set_physics_process(false)

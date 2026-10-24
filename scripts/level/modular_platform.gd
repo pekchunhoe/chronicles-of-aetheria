@@ -17,7 +17,4 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, dimensions), Color("394c5c"))
-	draw_rect(Rect2(0, 0, dimensions.x, 3), accent)
-	for x in range(8, int(dimensions.x), 32):
-		draw_rect(Rect2(x, 7, 3, 3), Color("617786"))
+	ArtLibrary.draw_platform(self, dimensions, dimensions.y < 32)

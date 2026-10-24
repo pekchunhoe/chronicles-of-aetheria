@@ -100,17 +100,11 @@ func _draw() -> void:
 	if attack == null:
 		return
 	var current_phase: String = phase()
-	var color: Color = attack.color
-	if current_phase == "startup":
-		draw_line(Vector2(7 * direction, 0), Vector2(12 * direction, -24), Color(color, 0.6), 3)
-	elif current_phase == "active":
+	if current_phase == "active":
 		var progress: float = (elapsed - attack.startup) / attack.active
-		var angle: float = lerpf(-1.0, 1.0, progress)
-		var tip := Vector2(cos(angle) * direction, sin(angle)) * attack.reach
-		draw_line(Vector2(7 * direction, 0), tip, color, 4)
-		for index in range(5):
-			var trail_angle: float = angle - float(index) * 0.16
-			var end := Vector2(cos(trail_angle) * direction, sin(trail_angle)) * attack.reach
-			draw_line(end * 0.6, end, Color(color, 0.7 - index * 0.12), 2)
-	else:
-		draw_line(Vector2(8 * direction, 1), Vector2(25 * direction, 14), Color(color, 0.35), 2)
+		var index: int = 58 if combo_index < 0 else 56 + mini(1, int(progress * 2))
+		draw_set_transform(Vector2(8 * direction, -2), 0, Vector2(direction, 1))
+		draw_texture_rect(ArtLibrary.texture("world", index), Rect2(0, -attack.height * 0.5, attack.reach, attack.height), false, Color(1, 1, 1, 0.88))
+		draw_set_transform(Vector2.ZERO)
+	elif current_phase == "startup":
+		draw_texture_rect(ArtLibrary.texture("world", 59), Rect2(4 * direction - 3, -20, 6, 6), false, Color(1, 0.85, 0.55, 0.65))

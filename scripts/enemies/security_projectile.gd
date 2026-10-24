@@ -43,5 +43,7 @@ func _dispose() -> void:
 
 
 func _draw() -> void:
-	draw_line(-direction * 11, Vector2.ZERO, Color("d87a65"), 3)
-	draw_circle(Vector2.ZERO, 4, Color("ffe19e"))
+	draw_set_transform(Vector2.ZERO, direction.angle())
+	draw_texture_rect(ArtLibrary.texture("machines", 56), Rect2(-13, -4, 20, 8), false)
+	draw_rect(Rect2(-2, -2, 4, 4), Color("ffe6aa"))
+	draw_set_transform(Vector2.ZERO)
